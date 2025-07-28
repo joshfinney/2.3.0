@@ -3,6 +3,9 @@
 {% if context.skills_manager.has_skills() %}
 {{context.skills_manager.prompt_display()}}
 {% endif %}
+{% if tools_prompt %}
+{{tools_prompt}}
+{% endif %}
 {% if last_code_generated != "" and context.memory.count() > 0 %}
 {{ last_code_generated }}
 {% else %}
@@ -21,9 +24,99 @@ import pandas as pd
 
 Variable `dfs: list[pd.DataFrame]` is already declared.
 
-At the end, declare "result" variable as a dictionary of type and value.
+## CRITICAL REQUIREMENTS FOR ROBUST CODE GENERATION ##
+
+**MANDATORY RESULT VARIABLE:**
+- ALWAYS declare a `result` variable as a dictionary with "type" and "value" keys
+- The result variable must be the final line of your code
+- NEVER leave result as None or undefined
+
+**CONDITIONAL LOGIC PATTERNS:**
+You must implement robust conditional logic to handle various scenarios:
+
+1. **Empty Dataset Handling:**
+```python
+if dfs[0].empty:
+    result = {"type": "string", "value": "I apologize, but the bond dataset appears to be empty. Please upload or verify your bond records data."}
+```
+
+2. **No Matching Data:**
+```python
+filtered_data = dfs[0][dfs[0]['condition'] == value]
+if filtered_data.empty:
+    result = {"type": "string", "value": "I couldn't find any bonds matching your criteria. You might want to adjust your search parameters or check the available data."}
+```
+
+3. **Single vs Multiple Results:**
+```python
+if len(matching_bonds) == 1:
+    result = {"type": "string", "value": f"Found exactly one bond: {matching_bonds.iloc[0]['Issuer']} issued on {matching_bonds.iloc[0]['Issue Date']}"}
+elif len(matching_bonds) > 1:
+    result = {"type": "string", "value": f"Found {len(matching_bonds)} bonds matching your criteria. The top issuers are: {', '.join(matching_bonds['Issuer'].head(3).tolist())}"}
+```
+
+4. **Data Quality Checks:**
+```python
+if 'required_column' not in dfs[0].columns:
+    result = {"type": "string", "value": "I notice the dataset is missing some expected bond information. Please verify the data structure."}
+```
+
+5. **Numerical Analysis with Context:**
+```python
+if analysis_result is None or pd.isna(analysis_result):
+    result = {"type": "string", "value": "I couldn't calculate the requested metric due to insufficient data. Please check if the relevant bond pricing information is available."}
+else:
+    result = {"type": "number", "value": float(analysis_result)}
+```
+
+**PERSONALIZED RESPONSES:**
+- Tailor error messages to the specific query context
+- For bond-related queries, reference DCM/syndicate terminology
+- Use professional, analyst-appropriate language
+- Include suggestions for alternative approaches when applicable
+
+**VISUALIZATION HANDLING:**
 {% if viz_lib %}
-If you are asked to plot a chart, use "{{viz_lib}}" for charts, save as png.
+```python
+import matplotlib.pyplot as plt
+import os
+# ... visualization code ...
+plt.savefig('temp_chart.png', dpi=300, bbox_inches='tight')
+plt.close()
+
+if os.path.exists('temp_chart.png'):
+    result = {"type": "plot", "value": "temp_chart.png"}
+else:
+    result = {"type": "string", "value": "I encountered an issue creating the visualization. The data might not be suitable for the requested chart type."}
+```
 {% endif %}
 
-Generate python code and return full updated code:
+**DEFENSIVE PROGRAMMING:**
+- Always check for None values before operations
+- Verify DataFrame structure before accessing columns
+- Handle division by zero in calculations
+- Validate data types before processing
+- Use conditional logic instead of try-catch blocks (let exceptions bubble up for error correction pipeline)
+
+**MARKET COMMENTARY INTELLIGENCE:**
+For bond analysis, include contextual insights:
+- Compare spreads across regions/sectors
+- Highlight unusual pricing patterns
+- Reference market conditions when relevant
+- Provide comparative analysis when possible
+
+**EXAMPLE ROBUST PATTERN:**
+```python
+# Main analysis logic with defensive checks
+if condition_check and not data.empty:
+    # Successful path
+    result = {"type": "string", "value": f"Based on the analysis: {insight}"}
+elif data.empty:
+    # Handle empty data case
+    result = {"type": "string", "value": "No data available for the requested analysis"}
+else:
+    # Alternative path
+    result = {"type": "string", "value": "Alternative analysis message"}
+```
+
+Generate python code following these robust patterns and return full updated code:

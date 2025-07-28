@@ -17,6 +17,98 @@ from ...schemas.df_config import Config
 from ..base_logic_unit import BaseLogicUnit
 from ..pipeline_context import PipelineContext
 from .code_cleaning import CodeExecutionContext
+from pandasai.tools.base import ToolRegistry
+
+# Global tool registry for use across pipeline stages
+_global_tool_registry = None
+
+def get_global_tool_registry():
+    """Get the global tool registry, creating it if necessary."""
+    global _global_tool_registry
+    if _global_tool_registry is None:
+        print("DEBUG: Creating new global tool registry")  # Debug
+        _global_tool_registry = ToolRegistry()
+        _initialize_global_tools()
+        print(f"DEBUG: Global registry initialized with {len(_global_tool_registry.get_all_tools())} tools")  # Debug
+    return _global_tool_registry
+
+def _initialize_global_tools():
+    """Initialize default tools in the global registry."""
+    global _global_tool_registry
+    if _global_tool_registry is None:
+        return
+    
+    import sys
+    import os
+    import importlib.util
+    
+    # Get the current module's package name dynamically
+    current_module = __name__  # e.g., 'utils.pandasai.pipelines.chat.code_execution'
+    package_parts = current_module.split('.')
+    
+    # Find the pandasai package root
+    pandasai_index = None
+    for i, part in enumerate(package_parts):
+        if part == 'pandasai':
+            pandasai_index = i
+            break
+    
+    if pandasai_index is not None:
+        # Construct the tools package name dynamically
+        base_package = '.'.join(package_parts[:pandasai_index + 1])  # e.g., 'utils.pandasai'
+        tools_package = f"{base_package}.tools"
+        print(f"DEBUG: Trying tools package: {tools_package}")
+        
+        try:
+            # Strategy 1: Dynamic package import
+            tools_module = importlib.import_module(f"{tools_package}.spread_comparison_calculator")
+            SpreadComparisonCalculator = getattr(tools_module, 'SpreadComparisonCalculator')
+            tool_instance = SpreadComparisonCalculator()
+            _global_tool_registry.register(tool_instance)
+            print(f"DEBUG: Strategy 1 SUCCESS - Registered tool: {tool_instance.name}")
+            return
+        except Exception as e:
+            print(f"DEBUG: Strategy 1 FAILED - Dynamic import: {e}")
+    
+    try:
+        # Strategy 2: Direct file import using importlib.util
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        tools_dir = os.path.join(current_dir, '..', '..', 'tools')
+        calculator_file = os.path.join(tools_dir, 'spread_comparison_calculator.py')
+        calculator_file = os.path.abspath(calculator_file)
+        
+        print(f"DEBUG: Strategy 2 - Loading from file: {calculator_file}")
+        print(f"DEBUG: File exists: {os.path.exists(calculator_file)}")
+        
+        if os.path.exists(calculator_file):
+            spec = importlib.util.spec_from_file_location("spread_comparison_calculator", calculator_file)
+            module = importlib.util.module_from_spec(spec)
+            
+            # Add the tools directory to sys.path temporarily for base imports
+            tools_dir_abs = os.path.dirname(calculator_file)
+            if tools_dir_abs not in sys.path:
+                sys.path.insert(0, tools_dir_abs)
+            
+            spec.loader.exec_module(module)
+            SpreadComparisonCalculator = getattr(module, 'SpreadComparisonCalculator')
+            tool_instance = SpreadComparisonCalculator()
+            _global_tool_registry.register(tool_instance)
+            print(f"DEBUG: Strategy 2 SUCCESS - Registered tool: {tool_instance.name}")
+            return
+    except Exception as e:
+        print(f"DEBUG: Strategy 2 FAILED - File import: {e}")
+    
+    print("DEBUG: All import strategies failed - no tools registered")
+
+def register_tool(tool):
+    """
+    Register a tool globally for use in code execution.
+    
+    Args:
+        tool: Tool instance implementing the Tool interface
+    """
+    tool_registry = get_global_tool_registry()
+    tool_registry.register(tool)
 
 
 class CodeExecution(BaseLogicUnit):
@@ -29,6 +121,7 @@ class CodeExecution(BaseLogicUnit):
     _additional_dependencies: List[dict] = []
     _current_code_executed: str = None
     _retry_if_fail: bool = False
+    _tool_registry: ToolRegistry = None
     _ast_comparator_map: dict = {
         ast.Eq: "=",
         ast.NotEq: "!=",
@@ -51,6 +144,7 @@ class CodeExecution(BaseLogicUnit):
         super().__init__(**kwargs)
         self.on_failure = on_failure
         self.on_retry = on_retry
+        self._tool_registry = get_global_tool_registry()
 
     def execute(self, input: Any, **kwargs) -> Any:
         """
@@ -166,6 +260,15 @@ class CodeExecution(BaseLogicUnit):
             for skill_func_name in context.skills_manager.used_skills:
                 skill = context.skills_manager.get_skill_by_func_name(skill_func_name)
                 environment[skill_func_name] = skill
+        
+        # Add tools to the env
+        if self._tool_registry:
+            tool_functions = self._tool_registry.get_tool_functions()
+            print(f"DEBUG: Tool registry has {len(self._tool_registry.get_all_tools())} tools")  # Debug
+            print(f"DEBUG: Tool functions: {list(tool_functions.keys())}")  # Debug
+            environment.update(tool_functions)
+        else:
+            print("DEBUG: No tool registry available")  # Debug
 
         # Execute the code
         exec(code, environment)
@@ -175,6 +278,34 @@ class CodeExecution(BaseLogicUnit):
             raise NoResultFoundError("No result returned")
 
         return environment["result"]
+    
+    
+    def add_tool(self, tool):
+        """
+        Add a tool to the code execution environment.
+        
+        Args:
+            tool: Tool instance implementing the Tool interface
+        """
+        self._tool_registry.register(tool)
+    
+    def get_tools_prompt(self, query: str = None) -> str:
+        """
+        Get tools prompt for code generation.
+        
+        Args:
+            query: Optional query to get contextual tools
+            
+        Returns:
+            str: Tools prompt for LLM
+        """
+        if not self._tool_registry:
+            return ""
+        
+        if query:
+            return self._tool_registry.get_contextual_tools_prompt(query)
+        else:
+            return self._tool_registry.get_tools_prompt()
 
     def _required_dfs(self, code: str) -> List[str]:
         """
