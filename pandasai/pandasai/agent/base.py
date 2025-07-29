@@ -11,6 +11,7 @@ from pandasai.pipelines.chat.chat_pipeline_input import ChatPipelineInput
 from pandasai.pipelines.chat.code_execution_pipeline_input import (
     CodeExecutionPipelineInput,
 )
+from pandasai.sandbox import Sandbox
 from pandasai.vectorstores.vectorstore import VectorStore
 
 from ..config import load_config_from_json
@@ -52,6 +53,7 @@ class BaseAgent:
         vectorstore: Optional[VectorStore] = None,
         description: str = None,
         security: BaseSecurity = None,
+        sandbox: Optional[Sandbox] = None,
     ):
         """
         Args:
@@ -79,6 +81,10 @@ class BaseAgent:
             memory=Memory(memory_size, agent_info=description),
             vectorstore=vectorstore,
         )
+        
+        # Add sandbox to context if provided
+        if sandbox:
+            self.context.add("sandbox", sandbox)
 
         # Instantiate the logger
         self.logger = Logger(
@@ -105,6 +111,7 @@ class BaseAgent:
 
         self.pipeline = None
         self.security = security
+        self.sandbox = sandbox
 
     def configure(self):
         # Add project root path if save_charts_path is default

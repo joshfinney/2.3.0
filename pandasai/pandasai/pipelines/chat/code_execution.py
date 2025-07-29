@@ -270,14 +270,21 @@ class CodeExecution(BaseLogicUnit):
         else:
             print("DEBUG: No tool registry available")  # Debug
 
-        # Execute the code
-        exec(code, environment)
+        # Check if sandbox is available and use it
+        sandbox = self.context.get("sandbox")
+        if sandbox:
+            # Use sandbox for secure execution
+            result = sandbox.execute(code, environment)
+            return result
+        else:
+            # Execute the code directly (original behavior)
+            exec(code, environment)
 
-        # Get the result
-        if "result" not in environment:
-            raise NoResultFoundError("No result returned")
+            # Get the result
+            if "result" not in environment:
+                raise NoResultFoundError("No result returned")
 
-        return environment["result"]
+            return environment["result"]
     
     
     def add_tool(self, tool):

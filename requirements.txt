@@ -1,0 +1,2 @@
+pandasai
+pandasai-docker
