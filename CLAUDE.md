@@ -14,6 +14,12 @@ This project uses **PandasAI's SmartDataframe** exclusively for conversational d
 - **SmartDataframe**: Main interface for conversational bond data analysis
 - **Agent**: Handles natural language queries and generates market commentary
 - **LLM Integration**: Powers the conversational AI (requires PANDASAI_API_KEY)
+- **Error Correction Pipeline**: Automatically handles code execution errors and retries with corrected code (no try-catch blocks needed)
+
+### Architecture Notes:
+- Uses pandas DataFrame processing (not SQL-based queries)
+- Error correction framework automatically handles exceptions
+- Generated code should use conditional logic instead of try-catch blocks
 
 ## Bond Dataset Structure
 
