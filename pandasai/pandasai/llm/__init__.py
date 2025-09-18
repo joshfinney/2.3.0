@@ -8,6 +8,8 @@ from .google_vertexai import GoogleVertexAI
 from .huggingface_text_gen import HuggingFaceTextGen
 from .ibm_watsonx import IBMwatsonx
 from .langchain import LangchainLLM
+from .litellm import LiteLLM, create_gpt_oss_llm
+from .model_adapter import ModelConfig
 from .openai import OpenAI
 
 __all__ = [
@@ -22,4 +24,7 @@ __all__ = [
     "LangchainLLM",
     "BedrockClaude",
     "IBMwatsonx",
+    "LiteLLM",
+    "ModelConfig",
+    "create_gpt_oss_llm",
 ]
