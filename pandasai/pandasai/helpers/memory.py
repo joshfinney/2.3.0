@@ -1,5 +1,5 @@
 """ Memory class to store the conversations """
-from typing import Union
+from typing import List, Union
 
 
 class Memory:
@@ -97,6 +97,35 @@ class Memory:
             else:
                 messages.append({"role": "assistant", "content": message["message"]})
         return messages
+
+    def get_conversation_only(self) -> List[dict]:
+        """
+        Get clean conversation messages without error artifacts for Harmony format
+        """
+        clean_messages = []
+        for msg in self._messages[-self._memory_size:]:
+            # Filter out error responses and correction artifacts
+            if not self._is_error_response(msg["message"]):
+                clean_messages.append(msg)
+        return clean_messages
+
+    def _is_error_response(self, message: str) -> bool:
+        """Check if message is an error response that should be filtered"""
+        error_indicators = [
+            "Unfortunately, I was not able",
+            "because of the following error:",
+            "Traceback (most recent call last):",
+            "Error occurred",
+            "Failed to execute"
+        ]
+        return any(indicator in message for indicator in error_indicators)
+
+    def add_without_errors(self, message: str, is_user: bool):
+        """Add message to memory, filtering out error responses for clean conversation flow"""
+        if not is_user and self._is_error_response(message):
+            # Don't store error responses in conversation history
+            return
+        self.add(message, is_user)
 
     def clear(self):
         self._messages = []

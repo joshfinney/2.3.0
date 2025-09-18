@@ -12,6 +12,14 @@ class LogServerConfig(TypedDict):
     api_key: str
 
 
+class HarmonyReasoningConfig(TypedDict, total=False):
+    code_generation: str
+    error_correction: str
+    explanation: str
+    clarification: str
+    default: str
+
+
 class Config(BaseModel):
     save_logs: bool = True
     verbose: bool = False
@@ -30,6 +38,16 @@ class Config(BaseModel):
     log_server: LogServerConfig = None
     direct_sql: bool = False
     dataframe_serializer: DataframeSerializerType = DataframeSerializerType.CSV
+
+    # Harmony format configuration
+    use_harmony_format: bool = False
+    harmony_reasoning_levels: HarmonyReasoningConfig = Field(default_factory=lambda: {
+        "code_generation": "high",
+        "error_correction": "medium",
+        "explanation": "low",
+        "clarification": "low",
+        "default": "medium"
+    })
 
     class Config:
         arbitrary_types_allowed = True

@@ -33,15 +33,29 @@ class PromptGeneration(BaseLogicUnit):
         self.context: PipelineContext = kwargs.get("context")
         self.logger: Logger = kwargs.get("logger")
 
-        prompt = self.get_chat_prompt(self.context)
-        self.logger.log(f"Using prompt: {prompt}")
+        # Store current user query for Harmony format
+        if hasattr(input, 'query'):
+            self.context.add("current_user_query", input.query)
+            self.logger.log(f"Current user query: {input.query}")
 
-        return LogicUnitOutput(
-            prompt,
-            True,
-            "Prompt Generated Successfully",
-            {"content_type": "prompt", "value": prompt.to_string()},
-        )
+        prompt = self.get_chat_prompt(self.context)
+
+        if self.context.config.use_harmony_format:
+            self.logger.log("Using Harmony format for prompt generation")
+            return LogicUnitOutput(
+                prompt,
+                True,
+                "Harmony Prompt Generated Successfully",
+                {"content_type": "harmony_prompt", "stage": "code_generation"}
+            )
+        else:
+            self.logger.log(f"Using legacy prompt: {prompt}")
+            return LogicUnitOutput(
+                prompt,
+                True,
+                "Prompt Generated Successfully",
+                {"content_type": "prompt", "value": prompt.to_string()},
+            )
 
     def get_chat_prompt(self, context: PipelineContext) -> Union[str, BasePrompt]:
         # set matplotlib as the default library

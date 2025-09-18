@@ -371,7 +371,7 @@ class BaseOpenAI(LLM):
 
     def call(self, instruction: BasePrompt, context: PipelineContext = None):
         """
-        Call the OpenAI LLM.
+        Call the OpenAI LLM with support for Harmony format.
 
         Args:
             instruction (BasePrompt): A prompt object with instruction for LLM.
@@ -383,8 +383,11 @@ class BaseOpenAI(LLM):
         Returns:
             str: Response
         """
-        self.last_prompt = instruction.to_string()
+        if context and context.config.use_harmony_format:
+            return self._call_harmony_format(instruction, context)
 
+        # Legacy format
+        self.last_prompt = instruction.to_string()
         memory = context.memory if context else None
 
         return (
@@ -392,6 +395,53 @@ class BaseOpenAI(LLM):
             if self._is_chat_model
             else self.completion(self.last_prompt, memory)
         )
+
+    def _call_harmony_format(self, instruction: BasePrompt, context: PipelineContext) -> str:
+        """Handle Harmony format LLM calls"""
+        if hasattr(instruction, 'to_harmony_messages'):
+            harmony_messages = instruction.to_harmony_messages(context)
+
+            # Add current user query if provided in context
+            current_query = context.get("current_user_query")
+            if current_query:
+                harmony_messages.add_user_message(current_query)
+
+            # Convert to LLM API format
+            messages = harmony_messages.get_messages_for_llm()
+
+            # Log for debugging
+            if hasattr(context, 'logger') and context.logger:
+                context.logger.log(f"Harmony format: {len(harmony_messages.get_system_messages())} system messages, "
+                                 f"{len(harmony_messages.get_conversation_only())} conversation messages")
+
+            return self._chat_completion_harmony(messages)
+        else:
+            # Fallback to legacy format if harmony not supported
+            self.last_prompt = instruction.to_string()
+            memory = context.memory if context else None
+            return self.chat_completion(self.last_prompt, memory) if self._is_chat_model else self.completion(self.last_prompt, memory)
+
+    def _chat_completion_harmony(self, messages: list) -> str:
+        """Execute chat completion with Harmony format messages"""
+        params = {**self._invocation_params, "messages": messages}
+
+        if self.stop is not None:
+            params["stop"] = [self.stop]
+
+        response = self.client.create(**params)
+
+        if openai_handler := openai_callback_var.get():
+            openai_handler(response)
+
+        # Handle Harmony response format (ignore reasoning if present)
+        content = response.choices[0].message.content
+
+        # Log token usage for monitoring
+        if hasattr(response, 'usage'):
+            total_tokens = response.usage.total_tokens
+            # Log to context if available
+
+        return content
 
 
 class BaseGoogle(LLM):

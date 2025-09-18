@@ -5,9 +5,13 @@ In order to better handle the instructions, this prompt module is written.
 import os
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from jinja2 import Environment, FileSystemLoader
+
+if TYPE_CHECKING:
+    from pandasai.helpers.harmony_messages import HarmonyMessages
+    from pandasai.pipelines.pipeline_context import PipelineContext
 
 
 class BasePrompt:
@@ -56,6 +60,34 @@ class BasePrompt:
 
     def validate(self, output: str) -> bool:
         return isinstance(output, str)
+
+    def get_reasoning_level(self, context: "PipelineContext") -> str:
+        """Get reasoning level for this prompt type - override in subclasses"""
+        prompt_class = self.__class__.__name__.lower()
+
+        # Map prompt classes to reasoning configuration keys
+        reasoning_map = {
+            "generatepythoncodeprompt": "code_generation",
+            "generatepythoncodewithsqlprompt": "code_generation",
+            "correcterrorprompt": "error_correction",
+            "explainprompt": "explanation",
+            "clarificationquestionprompt": "clarification"
+        }
+
+        reasoning_type = reasoning_map.get(prompt_class, "default")
+        return context.config.harmony_reasoning_levels.get(reasoning_type, "medium")
+
+    def to_harmony_messages(self, context: "PipelineContext") -> "HarmonyMessages":
+        """Convert prompt to Harmony messages format - override in subclasses"""
+        from pandasai.helpers.harmony_messages import HarmonyMessages
+
+        # Default implementation - subclasses should override
+        messages = HarmonyMessages(self.get_reasoning_level(context))
+        messages.add_core_identity("You are a helpful data analysis assistant.")
+        messages.add_task_context(self.to_string())
+        messages.start_conversation_history()
+
+        return messages
 
     def to_json(self):
         """
