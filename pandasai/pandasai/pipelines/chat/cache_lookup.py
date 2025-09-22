@@ -43,5 +43,8 @@ class CacheLookup(BaseLogicUnit):
             )
 
             pipeline_context.add("found_in_cache", True)
+            pipeline_context.add("cached_code", code)
 
-            return LogicUnitOutput(code, True, "Cache Hit")
+            return LogicUnitOutput(input, True, "Cache Hit")
+
+        return LogicUnitOutput(input, True, "Cache Miss")

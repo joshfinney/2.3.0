@@ -163,15 +163,49 @@ class HarmonyMessages:
 class HarmonyMessagesBuilder:
     """Builder pattern for constructing HarmonyMessages objects for different pipeline stages"""
 
+    # Class variable for template builder (lazy-loaded)
+    _template_builder = None
+
+    @classmethod
+    def _get_template_builder(cls):
+        """Lazy-load template builder to avoid circular imports"""
+        if cls._template_builder is None:
+            try:
+                from .template_harmony_builder import TemplateHarmonyBuilder
+                cls._template_builder = TemplateHarmonyBuilder()
+            except ImportError:
+                # Fallback to None if template system not available
+                cls._template_builder = None
+        return cls._template_builder
+
     @staticmethod
     def for_code_generation(
         dataframes_info: str,
         skills_info: str = "",
         previous_code: str = "",
         viz_library: str = "",
-        reasoning_level: str = "high"
+        reasoning_level: str = "high",
+        use_templates: bool = True
     ) -> HarmonyMessages:
         """Build messages for code generation pipeline stage"""
+
+        # Try template-based approach first
+        if use_templates:
+            template_builder = HarmonyMessagesBuilder._get_template_builder()
+            if template_builder is not None:
+                try:
+                    return template_builder.build_for_code_generation(
+                        dataframes_info=dataframes_info,
+                        skills_info=skills_info,
+                        previous_code=previous_code,
+                        viz_library=viz_library,
+                        reasoning_level=reasoning_level
+                    )
+                except Exception:
+                    # Fall back to hardcoded approach if template fails
+                    pass
+
+        # Fallback: Original hardcoded approach
         messages = HarmonyMessages(reasoning_level)
 
         # Core identity
@@ -207,9 +241,26 @@ class HarmonyMessagesBuilder:
     def for_error_correction(
         error_details: str,
         failed_code: str,
-        reasoning_level: str = "medium"
+        reasoning_level: str = "medium",
+        use_templates: bool = True
     ) -> HarmonyMessages:
         """Build messages for error correction pipeline stage (isolated context)"""
+
+        # Try template-based approach first
+        if use_templates:
+            template_builder = HarmonyMessagesBuilder._get_template_builder()
+            if template_builder is not None:
+                try:
+                    return template_builder.build_for_error_correction(
+                        error_details=error_details,
+                        failed_code=failed_code,
+                        reasoning_level=reasoning_level
+                    )
+                except Exception:
+                    # Fall back to hardcoded approach if template fails
+                    pass
+
+        # Fallback: Original hardcoded approach
         messages = HarmonyMessages(reasoning_level)
 
         # Core identity

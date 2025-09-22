@@ -1,0 +1,6 @@
+# DATA QUALITY REQUIREMENTS:
+{% if quality_checks %}
+{% for check in quality_checks %}
+- {{ check }}
+{% endfor %}
+{% endif %}

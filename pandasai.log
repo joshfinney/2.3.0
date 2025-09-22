@@ -1,0 +1,921 @@
+2025-09-19 00:15:51 [INFO] Question: How many records are in this dataset?
+2025-09-19 00:15:51 [INFO] Running PandasAI with openai LLM...
+2025-09-19 00:15:51 [INFO] Prompt ID: 95ae0abf-809a-42fa-b1bc-16dc32b82894
+2025-09-19 00:15:51 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-09-19 00:15:51 [INFO] Executing Step 0: ValidatePipelineInput
+2025-09-19 00:15:51 [INFO] Executing Step 1: CacheLookup
+2025-09-19 00:15:51 [INFO] Executing Step 2: PromptGeneration
+2025-09-19 00:15:51 [INFO] Using legacy prompt: <dataframe>
+dfs[0]:10000x25
+Issue Date,Syndicate Desk,Syndicate Region,Country,Issuer,ISIN,Issuer Category,Sector,Currency,Size (EUR m),Tenor,Seniority,Coupon,IPTs,Spread at Launch (bps),Guidance,Price Tightening,Books Guide,Books Launch,Books Final,Oversubscription,New Issue Premium (bps),BNP Role,BNP Active,Sustainable
+2023-12-28,Hong Kong,EMEA,Netherlands,KfW,US85FDB4B7D6,FIG,Insurance,USD,129.43,7,Senior Unsecured,Fixed,3.8,59.18,5.44,0.16,474.15,716.14,772.55,4.23,47.24,,False,True
+2020-09-25,New York,Asia-Pacific,United Arab Emirates,Government of South Korea,JPJTRREGFVX3,Corporate,Financial Services,EUR,278.07,30,Senior Subordinated,Floating,4.84,88.47,6.03,0.06,397.86,1002.74,513.55,3.34,38.37,Co-Manager,True,False
+2020-02-13,London,Americas,France,MUFG Group,HKC4KTQ6HRS7,SSA,Utilities,GBP,1249.74,1,Secured,Zero-Coupon,2.16,118.13,7.06,0.1,1358.3,1022.28,1003.32,2.97,18.52,Documentation Agent,True,False
+</dataframe>
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ How many records are in this dataset?
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+2025-09-19 00:15:51 [INFO] Executing Step 3: CodeGenerator
+2025-09-19 00:15:54 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:15:54 [INFO] Prompt used:
+            <dataframe>
+dfs[0]:10000x25
+Issue Date,Syndicate Desk,Syndicate Region,Country,Issuer,ISIN,Issuer Category,Sector,Currency,Size (EUR m),Tenor,Seniority,Coupon,IPTs,Spread at Launch (bps),Guidance,Price Tightening,Books Guide,Books Launch,Books Final,Oversubscription,New Issue Premium (bps),BNP Role,BNP Active,Sustainable
+2023-12-28,Hong Kong,EMEA,Netherlands,KfW,US85FDB4B7D6,FIG,Insurance,USD,129.43,7,Senior Unsecured,Fixed,3.8,59.18,5.44,0.16,474.15,716.14,772.55,4.23,47.24,,False,True
+2020-09-25,New York,Asia-Pacific,United Arab Emirates,Government of South Korea,JPJTRREGFVX3,Corporate,Financial Services,EUR,278.07,30,Senior Subordinated,Floating,4.84,88.47,6.03,0.06,397.86,1002.74,513.55,3.34,38.37,Co-Manager,True,False
+2020-02-13,London,Americas,France,MUFG Group,HKC4KTQ6HRS7,SSA,Utilities,GBP,1249.74,1,Secured,Zero-Coupon,2.16,118.13,7.06,0.1,1358.3,1022.28,1003.32,2.97,18.52,Documentation Agent,True,False
+</dataframe>
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ How many records are in this dataset?
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+            
+2025-09-19 00:15:54 [INFO] Code generated:
+            ```
+            # TODO: import the required dependencies
+import pandas as pd
+
+# Assuming dfs is already declared and contains the DataFrame
+# Count the number of records in the first DataFrame in the list
+num_records = len(dfs[0])
+
+# Declare result var: 
+result = {
+    "type": "number",
+    "value": num_records
+}
+            ```
+            
+2025-09-19 00:15:54 [INFO] Executing Step 4: CachePopulation
+2025-09-19 00:15:54 [INFO] Executing Step 5: CodeCleaning
+2025-09-19 00:15:54 [INFO] 
+Code running:
+```
+num_records = len(dfs[0])
+result = {'type': 'number', 'value': num_records}
+        ```
+2025-09-19 00:15:54 [INFO] Executing Step 6: CodeExecution
+2025-09-19 00:15:54 [INFO] Executing Step 7: ResultValidation
+2025-09-19 00:15:54 [INFO] Answer: {'type': 'number', 'value': 10000}
+2025-09-19 00:15:54 [INFO] Executing Step 8: ResultParsing
+2025-09-19 00:15:54 [INFO] Question: How many records are in this dataset?
+2025-09-19 00:15:54 [INFO] Running PandasAI with openai LLM...
+2025-09-19 00:15:54 [INFO] Prompt ID: 983842a3-291e-40c4-8375-1604f06d0a1f
+2025-09-19 00:15:54 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-09-19 00:15:54 [INFO] Executing Step 0: ValidatePipelineInput
+2025-09-19 00:15:54 [INFO] Executing Step 1: CacheLookup
+2025-09-19 00:15:54 [INFO] Using cached response
+2025-09-19 00:15:54 [INFO] Executing Step 2: PromptGeneration
+2025-09-19 00:15:54 [INFO] Executing Step 2: Skipping...
+2025-09-19 00:15:54 [INFO] Executing Step 3: CodeGenerator
+2025-09-19 00:15:54 [INFO] Executing Step 3: Skipping...
+2025-09-19 00:15:54 [INFO] Executing Step 4: CachePopulation
+2025-09-19 00:15:54 [INFO] Executing Step 4: Skipping...
+2025-09-19 00:15:54 [INFO] Executing Step 5: CodeCleaning
+2025-09-19 00:15:54 [INFO] 
+Code running:
+```
+num_records = len(dfs[0])
+result = {'type': 'number', 'value': num_records}
+        ```
+2025-09-19 00:15:54 [INFO] Executing Step 6: CodeExecution
+2025-09-19 00:15:54 [INFO] Executing Step 7: ResultValidation
+2025-09-19 00:15:54 [INFO] Answer: {'type': 'number', 'value': 10000}
+2025-09-19 00:15:54 [INFO] Executing Step 8: ResultParsing
+2025-09-19 00:15:54 [INFO] Question: What columns are available?
+2025-09-19 00:15:54 [INFO] Running PandasAI with openai LLM...
+2025-09-19 00:15:54 [INFO] Prompt ID: c6120917-8f3a-49a5-89cf-13fabb92c827
+2025-09-19 00:15:54 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-09-19 00:15:54 [INFO] Executing Step 0: ValidatePipelineInput
+2025-09-19 00:15:54 [INFO] Executing Step 1: CacheLookup
+2025-09-19 00:15:54 [INFO] Executing Step 2: PromptGeneration
+2025-09-19 00:15:54 [INFO] Using Harmony format for prompt generation
+2025-09-19 00:15:54 [INFO] Executing Step 3: CodeGenerator
+2025-09-19 00:15:57 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:15:57 [INFO] Prompt used:
+            None
+            
+2025-09-19 00:15:57 [INFO] Code generated:
+            ```
+            import pandas as pd
+import matplotlib.pyplot as plt
+
+# Assuming dfs[0] is a Pandas DataFrame
+df = dfs[0]
+
+# Example data analysis task: Summary statistics of the DataFrame
+summary_stats = df.describe()
+
+# Example visualization: Histogram of a specific column (replace 'column_name' with an actual column)
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('column_name')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('histogram_column_name.png')
+plt.close()
+
+# Prepare the result dictionary
+result = {
+    'type': 'summary_statistics',
+    'value': summary_stats
+}
+            ```
+            
+2025-09-19 00:15:57 [INFO] Executing Step 4: CachePopulation
+2025-09-19 00:15:57 [INFO] Executing Step 5: CodeCleaning
+2025-09-19 00:15:57 [INFO] Saving charts to /Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png
+2025-09-19 00:15:57 [INFO] 
+Code running:
+```
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('column_name')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+plt.close()
+result = {'type': 'summary_statistics', 'value': summary_stats}
+        ```
+2025-09-19 00:15:57 [INFO] Executing Step 6: CodeExecution
+2025-09-19 00:15:58 [ERROR] Failed with error: Traceback (most recent call last):
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'column_name'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 85, in execute
+    result = self.execute_code(code_to_run, code_context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 171, in execute_code
+    exec(code, environment)
+  File "<string>", line 4, in <module>
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'column_name'
+
+2025-09-19 00:15:58 [WARNING] Failed to execute code retrying with a correction framework [retry number: 1]
+2025-09-19 00:15:58 [INFO] Executing Pipeline: ErrorCorrectionPipeline
+2025-09-19 00:15:58 [INFO] Executing Step 0: ErrorPromptGeneration
+2025-09-19 00:15:58 [INFO] Using prompt: <dataframe>
+dfs[0]:10000x25
+Issue Date,Syndicate Desk,Syndicate Region,Country,Issuer,ISIN,Issuer Category,Sector,Currency,Size (EUR m),Tenor,Seniority,Coupon,IPTs,Spread at Launch (bps),Guidance,Price Tightening,Books Guide,Books Launch,Books Final,Oversubscription,New Issue Premium (bps),BNP Role,BNP Active,Sustainable
+2023-12-28,New York,Americas,Chile,Barclays Group,US447CNC2UM2,FIG,Oil & Gas,CNY,542.02,20,Secured,Fixed,6.17,215.03,5.28,0.19,442.81,453.12,717.47,4.78,20.0,Global Coordinator,True,False
+2024-04-25,Hong Kong,Asia-Pacific,France,Manufacturing Innovations,MX8ICMVOD6X7,SSA,Healthcare,HKD,283.17,7,Senior Secured,Zero-Coupon,7.85,55.96,5.05,0.03,776.31,443.14,1279.76,3.52,25.65,Passive Bookrunner,True,True
+2021-08-14,London,EMEA,Hong Kong,Continental Financial,USLP0IRAH0C6,Corporate,Insurance,JPY,243.43,10,Senior Preferred,Floating,2.75,250.89,3.16,0.17,131.31,395.91,700.44,1.61,42.09,,False,True
+</dataframe>
+
+
+The user asked the following question:
+### QUERY
+ How many records are in this dataset?
+### ANSWER
+ 10000
+### QUERY
+ What columns are available?
+
+You generated this python code:
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('column_name')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+plt.close()
+result = {'type': 'summary_statistics', 'value': summary_stats}
+
+It fails with the following error:
+Traceback (most recent call last):
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'column_name'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 85, in execute
+    result = self.execute_code(code_to_run, code_context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 171, in execute_code
+    exec(code, environment)
+  File "<string>", line 4, in <module>
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'column_name'
+
+
+Fix the python code above and return the new python code:
+2025-09-19 00:15:58 [INFO] Executing Step 1: CodeGenerator
+2025-09-19 00:16:01 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:16:01 [INFO] Prompt used:
+            None
+            
+2025-09-19 00:16:01 [INFO] Code generated:
+            ```
+            df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+
+# Ensure 'column_name' is a valid column in the DataFrame
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('column_name')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+
+result = {'type': 'summary_statistics', 'value': summary_stats}
+            ```
+            
+2025-09-19 00:16:01 [INFO] Executing Step 2: CodeCleaning
+2025-09-19 00:16:01 [INFO] Saving charts to /Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png
+2025-09-19 00:16:01 [INFO] 
+Code running:
+```
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('column_name')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+result = {'type': 'summary_statistics', 'value': summary_stats}
+        ```
+2025-09-19 00:16:01 [ERROR] Failed with error: Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 97, in execute
+    raise InvalidOutputValueMismatch(
+pandasai.exceptions.InvalidOutputValueMismatch: Value type <class 'pandas.core.frame.DataFrame'> must match with type summary_statistics
+
+2025-09-19 00:16:01 [WARNING] Failed to execute code retrying with a correction framework [retry number: 2]
+2025-09-19 00:16:01 [INFO] Executing Pipeline: ErrorCorrectionPipeline
+2025-09-19 00:16:01 [INFO] Executing Step 0: ErrorPromptGeneration
+2025-09-19 00:16:01 [INFO] Using prompt: <dataframe>
+dfs[0]:10000x25
+Issue Date,Syndicate Desk,Syndicate Region,Country,Issuer,ISIN,Issuer Category,Sector,Currency,Size (EUR m),Tenor,Seniority,Coupon,IPTs,Spread at Launch (bps),Guidance,Price Tightening,Books Guide,Books Launch,Books Final,Oversubscription,New Issue Premium (bps),BNP Role,BNP Active,Sustainable
+2023-12-28,New York,Americas,Chile,Barclays Group,US447CNC2UM2,FIG,Oil & Gas,CNY,542.02,20,Secured,Fixed,6.17,215.03,5.28,0.19,442.81,453.12,717.47,4.78,20.0,Global Coordinator,True,False
+2024-04-25,Hong Kong,Asia-Pacific,France,Manufacturing Innovations,MX8ICMVOD6X7,SSA,Healthcare,HKD,283.17,7,Senior Secured,Zero-Coupon,7.85,55.96,5.05,0.03,776.31,443.14,1279.76,3.52,25.65,Passive Bookrunner,True,True
+2021-08-14,London,EMEA,Hong Kong,Continental Financial,USLP0IRAH0C6,Corporate,Insurance,JPY,243.43,10,Senior Preferred,Floating,2.75,250.89,3.16,0.17,131.31,395.91,700.44,1.61,42.09,,False,True
+</dataframe>
+
+
+The user asked the following question:
+### QUERY
+ How many records are in this dataset?
+### ANSWER
+ 10000
+### QUERY
+ What columns are available?
+
+You generated this python code:
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('column_name')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+result = {'type': 'summary_statistics', 'value': summary_stats}
+
+It fails with the following error:
+Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 97, in execute
+    raise InvalidOutputValueMismatch(
+pandasai.exceptions.InvalidOutputValueMismatch: Value type <class 'pandas.core.frame.DataFrame'> must match with type summary_statistics
+
+
+Fix the python code above and return the new python code:
+2025-09-19 00:16:01 [INFO] Executing Step 1: CodeGenerator
+2025-09-19 00:16:05 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:16:05 [INFO] Prompt used:
+            None
+            
+2025-09-19 00:16:05 [INFO] Code generated:
+            ```
+            df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('column_name')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+    summary_stats = None  # Set summary_stats to None if the column does not exist
+
+result = {'type': 'summary_statistics', 'value': summary_stats}
+            ```
+            
+2025-09-19 00:16:05 [INFO] Executing Step 2: CodeCleaning
+2025-09-19 00:16:05 [INFO] Saving charts to /Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png
+2025-09-19 00:16:05 [INFO] 
+Code running:
+```
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('column_name')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+    summary_stats = None
+result = {'type': 'summary_statistics', 'value': summary_stats}
+        ```
+2025-09-19 00:16:05 [ERROR] Failed with error: Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 97, in execute
+    raise InvalidOutputValueMismatch(
+pandasai.exceptions.InvalidOutputValueMismatch: Value type <class 'NoneType'> must match with type summary_statistics
+
+2025-09-19 00:16:05 [WARNING] Failed to execute code retrying with a correction framework [retry number: 3]
+2025-09-19 00:16:05 [INFO] Executing Pipeline: ErrorCorrectionPipeline
+2025-09-19 00:16:05 [INFO] Executing Step 0: ErrorPromptGeneration
+2025-09-19 00:16:05 [INFO] Using prompt: <dataframe>
+dfs[0]:10000x25
+Issue Date,Syndicate Desk,Syndicate Region,Country,Issuer,ISIN,Issuer Category,Sector,Currency,Size (EUR m),Tenor,Seniority,Coupon,IPTs,Spread at Launch (bps),Guidance,Price Tightening,Books Guide,Books Launch,Books Final,Oversubscription,New Issue Premium (bps),BNP Role,BNP Active,Sustainable
+2023-12-28,New York,Americas,Chile,Barclays Group,US447CNC2UM2,FIG,Oil & Gas,CNY,542.02,20,Secured,Fixed,6.17,215.03,5.28,0.19,442.81,453.12,717.47,4.78,20.0,Global Coordinator,True,False
+2024-04-25,Hong Kong,Asia-Pacific,France,Manufacturing Innovations,MX8ICMVOD6X7,SSA,Healthcare,HKD,283.17,7,Senior Secured,Zero-Coupon,7.85,55.96,5.05,0.03,776.31,443.14,1279.76,3.52,25.65,Passive Bookrunner,True,True
+2021-08-14,London,EMEA,Hong Kong,Continental Financial,USLP0IRAH0C6,Corporate,Insurance,JPY,243.43,10,Senior Preferred,Floating,2.75,250.89,3.16,0.17,131.31,395.91,700.44,1.61,42.09,,False,True
+</dataframe>
+
+
+The user asked the following question:
+### QUERY
+ How many records are in this dataset?
+### ANSWER
+ 10000
+### QUERY
+ What columns are available?
+
+You generated this python code:
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('column_name')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+    summary_stats = None
+result = {'type': 'summary_statistics', 'value': summary_stats}
+
+It fails with the following error:
+Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 97, in execute
+    raise InvalidOutputValueMismatch(
+pandasai.exceptions.InvalidOutputValueMismatch: Value type <class 'NoneType'> must match with type summary_statistics
+
+
+Fix the python code above and return the new python code:
+2025-09-19 00:16:05 [INFO] Executing Step 1: CodeGenerator
+2025-09-19 00:16:08 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:16:08 [INFO] Prompt used:
+            None
+            
+2025-09-19 00:16:08 [INFO] Code generated:
+            ```
+            df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('column_name')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+    summary_stats = {}  # Change None to an empty dictionary to match expected type
+
+result = {'type': 'summary_statistics', 'value': summary_stats}
+            ```
+            
+2025-09-19 00:16:08 [INFO] Executing Step 2: CodeCleaning
+2025-09-19 00:16:08 [INFO] Saving charts to /Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png
+2025-09-19 00:16:08 [INFO] 
+Code running:
+```
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('column_name')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+    summary_stats = {}
+result = {'type': 'summary_statistics', 'value': summary_stats}
+        ```
+2025-09-19 00:16:09 [ERROR] Failed with error: Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 97, in execute
+    raise InvalidOutputValueMismatch(
+pandasai.exceptions.InvalidOutputValueMismatch: Value type <class 'dict'> must match with type summary_statistics
+
+2025-09-19 00:16:09 [ERROR] Pipeline failed on step 6: Value type <class 'dict'> must match with type summary_statistics
+2025-09-19 00:16:09 [INFO] Question: Show me the average Size (EUR m) if it exists
+2025-09-19 00:16:09 [INFO] Running PandasAI with openai LLM...
+2025-09-19 00:16:09 [INFO] Prompt ID: 74c89ea3-d6a7-426d-a03e-428208df5c40
+2025-09-19 00:16:09 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-09-19 00:16:09 [INFO] Executing Step 0: ValidatePipelineInput
+2025-09-19 00:16:09 [INFO] Executing Step 1: CacheLookup
+2025-09-19 00:16:09 [INFO] Executing Step 2: PromptGeneration
+2025-09-19 00:16:09 [INFO] Using Harmony format for prompt generation
+2025-09-19 00:16:09 [INFO] Executing Step 3: CodeGenerator
+2025-09-19 00:16:12 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:16:12 [INFO] Prompt used:
+            None
+            
+2025-09-19 00:16:13 [INFO] Code generated:
+            ```
+            import pandas as pd
+import matplotlib.pyplot as plt
+
+# Assuming dfs[0] is a Pandas DataFrame
+df = dfs[0].data  # Accessing the actual DataFrame from the connector
+
+# Example data analysis task: Summary statistics of the DataFrame
+summary_stats = df.describe()
+
+# Example visualization: Histogram of a specific column (replace 'column_name' with an actual column)
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('histogram_column_name.png')  # Save the figure as PNG
+plt.close()
+
+# Prepare the result dictionary
+result = {
+    'type': 'summary_statistics',
+    'value': summary_stats
+}
+            ```
+            
+2025-09-19 00:16:13 [INFO] Executing Step 4: CachePopulation
+2025-09-19 00:16:13 [INFO] Executing Step 5: CodeCleaning
+2025-09-19 00:16:13 [INFO] Saving charts to /Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png
+2025-09-19 00:16:13 [INFO] 
+Code running:
+```
+df = dfs[0].data
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+plt.close()
+result = {'type': 'summary_statistics', 'value': summary_stats}
+        ```
+2025-09-19 00:16:13 [INFO] Executing Step 6: CodeExecution
+2025-09-19 00:16:13 [ERROR] Failed with error: Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 85, in execute
+    result = self.execute_code(code_to_run, code_context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 171, in execute_code
+    exec(code, environment)
+  File "<string>", line 1, in <module>
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/generic.py", line 6299, in __getattr__
+    return object.__getattribute__(self, name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DataFrame' object has no attribute 'data'. Did you mean: '_data'?
+
+2025-09-19 00:16:13 [WARNING] Failed to execute code retrying with a correction framework [retry number: 1]
+2025-09-19 00:16:13 [INFO] Executing Pipeline: ErrorCorrectionPipeline
+2025-09-19 00:16:13 [INFO] Executing Step 0: ErrorPromptGeneration
+2025-09-19 00:16:13 [INFO] Using prompt: <dataframe>
+dfs[0]:10000x25
+Issue Date,Syndicate Desk,Syndicate Region,Country,Issuer,ISIN,Issuer Category,Sector,Currency,Size (EUR m),Tenor,Seniority,Coupon,IPTs,Spread at Launch (bps),Guidance,Price Tightening,Books Guide,Books Launch,Books Final,Oversubscription,New Issue Premium (bps),BNP Role,BNP Active,Sustainable
+2023-12-28,New York,Americas,Chile,Barclays Group,US447CNC2UM2,FIG,Oil & Gas,CNY,542.02,20,Secured,Fixed,6.17,215.03,5.28,0.19,442.81,453.12,717.47,4.78,20.0,Global Coordinator,True,False
+2024-04-25,Hong Kong,Asia-Pacific,France,Manufacturing Innovations,MX8ICMVOD6X7,SSA,Healthcare,HKD,283.17,7,Senior Secured,Zero-Coupon,7.85,55.96,5.05,0.03,776.31,443.14,1279.76,3.52,25.65,Passive Bookrunner,True,True
+2021-08-14,London,EMEA,Hong Kong,Continental Financial,USLP0IRAH0C6,Corporate,Insurance,JPY,243.43,10,Senior Preferred,Floating,2.75,250.89,3.16,0.17,131.31,395.91,700.44,1.61,42.09,,False,True
+</dataframe>
+
+
+The user asked the following question:
+### QUERY
+ How many records are in this dataset?
+### ANSWER
+ 10000
+### QUERY
+ What columns are available?
+### QUERY
+ Show me the average Size (EUR m) if it exists
+
+You generated this python code:
+df = dfs[0].data
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+plt.close()
+result = {'type': 'summary_statistics', 'value': summary_stats}
+
+It fails with the following error:
+Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 85, in execute
+    result = self.execute_code(code_to_run, code_context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 171, in execute_code
+    exec(code, environment)
+  File "<string>", line 1, in <module>
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/generic.py", line 6299, in __getattr__
+    return object.__getattribute__(self, name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DataFrame' object has no attribute 'data'. Did you mean: '_data'?
+
+
+Fix the python code above and return the new python code:
+2025-09-19 00:16:13 [INFO] Executing Step 1: CodeGenerator
+2025-09-19 00:16:15 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:16:15 [INFO] Prompt used:
+            None
+            
+2025-09-19 00:16:15 [INFO] Code generated:
+            ```
+            df = dfs[0]  # Removed .data to access the DataFrame directly
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+plt.close()
+result = {'type': 'summary_statistics', 'value': summary_stats}
+            ```
+            
+2025-09-19 00:16:15 [INFO] Executing Step 2: CodeCleaning
+2025-09-19 00:16:15 [INFO] Saving charts to /Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png
+2025-09-19 00:16:15 [INFO] 
+Code running:
+```
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+plt.close()
+result = {'type': 'summary_statistics', 'value': summary_stats}
+        ```
+2025-09-19 00:16:15 [ERROR] Failed with error: Traceback (most recent call last):
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'column_name'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 85, in execute
+    result = self.execute_code(code_to_run, code_context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 171, in execute_code
+    exec(code, environment)
+  File "<string>", line 4, in <module>
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'column_name'
+
+2025-09-19 00:16:15 [WARNING] Failed to execute code retrying with a correction framework [retry number: 2]
+2025-09-19 00:16:15 [INFO] Executing Pipeline: ErrorCorrectionPipeline
+2025-09-19 00:16:15 [INFO] Executing Step 0: ErrorPromptGeneration
+2025-09-19 00:16:16 [INFO] Using prompt: <dataframe>
+dfs[0]:10000x25
+Issue Date,Syndicate Desk,Syndicate Region,Country,Issuer,ISIN,Issuer Category,Sector,Currency,Size (EUR m),Tenor,Seniority,Coupon,IPTs,Spread at Launch (bps),Guidance,Price Tightening,Books Guide,Books Launch,Books Final,Oversubscription,New Issue Premium (bps),BNP Role,BNP Active,Sustainable
+2023-12-28,New York,Americas,Chile,Barclays Group,US447CNC2UM2,FIG,Oil & Gas,CNY,542.02,20,Secured,Fixed,6.17,215.03,5.28,0.19,442.81,453.12,717.47,4.78,20.0,Global Coordinator,True,False
+2024-04-25,Hong Kong,Asia-Pacific,France,Manufacturing Innovations,MX8ICMVOD6X7,SSA,Healthcare,HKD,283.17,7,Senior Secured,Zero-Coupon,7.85,55.96,5.05,0.03,776.31,443.14,1279.76,3.52,25.65,Passive Bookrunner,True,True
+2021-08-14,London,EMEA,Hong Kong,Continental Financial,USLP0IRAH0C6,Corporate,Insurance,JPY,243.43,10,Senior Preferred,Floating,2.75,250.89,3.16,0.17,131.31,395.91,700.44,1.61,42.09,,False,True
+</dataframe>
+
+
+The user asked the following question:
+### QUERY
+ How many records are in this dataset?
+### ANSWER
+ 10000
+### QUERY
+ What columns are available?
+### QUERY
+ Show me the average Size (EUR m) if it exists
+
+You generated this python code:
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+df['column_name'].hist(bins=30, edgecolor='black')
+plt.title('Histogram of column_name')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.grid(False)
+plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+plt.close()
+result = {'type': 'summary_statistics', 'value': summary_stats}
+
+It fails with the following error:
+Traceback (most recent call last):
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'column_name'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 85, in execute
+    result = self.execute_code(code_to_run, code_context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 171, in execute_code
+    exec(code, environment)
+  File "<string>", line 4, in <module>
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'column_name'
+
+
+Fix the python code above and return the new python code:
+2025-09-19 00:16:16 [INFO] Executing Step 1: CodeGenerator
+2025-09-19 00:16:19 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:16:19 [INFO] Prompt used:
+            None
+            
+2025-09-19 00:16:19 [INFO] Code generated:
+            ```
+            df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+
+# Ensure 'column_name' exists in the DataFrame before plotting
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+
+result = {'type': 'summary_statistics', 'value': summary_stats}
+            ```
+            
+2025-09-19 00:16:19 [INFO] Executing Step 2: CodeCleaning
+2025-09-19 00:16:19 [INFO] Saving charts to /Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png
+2025-09-19 00:16:19 [INFO] 
+Code running:
+```
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+result = {'type': 'summary_statistics', 'value': summary_stats}
+        ```
+2025-09-19 00:16:19 [ERROR] Failed with error: Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 97, in execute
+    raise InvalidOutputValueMismatch(
+pandasai.exceptions.InvalidOutputValueMismatch: Value type <class 'pandas.core.frame.DataFrame'> must match with type summary_statistics
+
+2025-09-19 00:16:19 [WARNING] Failed to execute code retrying with a correction framework [retry number: 3]
+2025-09-19 00:16:19 [INFO] Executing Pipeline: ErrorCorrectionPipeline
+2025-09-19 00:16:19 [INFO] Executing Step 0: ErrorPromptGeneration
+2025-09-19 00:16:19 [INFO] Using prompt: <dataframe>
+dfs[0]:10000x25
+Issue Date,Syndicate Desk,Syndicate Region,Country,Issuer,ISIN,Issuer Category,Sector,Currency,Size (EUR m),Tenor,Seniority,Coupon,IPTs,Spread at Launch (bps),Guidance,Price Tightening,Books Guide,Books Launch,Books Final,Oversubscription,New Issue Premium (bps),BNP Role,BNP Active,Sustainable
+2023-12-28,New York,Americas,Chile,Barclays Group,US447CNC2UM2,FIG,Oil & Gas,CNY,542.02,20,Secured,Fixed,6.17,215.03,5.28,0.19,442.81,453.12,717.47,4.78,20.0,Global Coordinator,True,False
+2024-04-25,Hong Kong,Asia-Pacific,France,Manufacturing Innovations,MX8ICMVOD6X7,SSA,Healthcare,HKD,283.17,7,Senior Secured,Zero-Coupon,7.85,55.96,5.05,0.03,776.31,443.14,1279.76,3.52,25.65,Passive Bookrunner,True,True
+2021-08-14,London,EMEA,Hong Kong,Continental Financial,USLP0IRAH0C6,Corporate,Insurance,JPY,243.43,10,Senior Preferred,Floating,2.75,250.89,3.16,0.17,131.31,395.91,700.44,1.61,42.09,,False,True
+</dataframe>
+
+
+The user asked the following question:
+### QUERY
+ How many records are in this dataset?
+### ANSWER
+ 10000
+### QUERY
+ What columns are available?
+### QUERY
+ Show me the average Size (EUR m) if it exists
+
+You generated this python code:
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+result = {'type': 'summary_statistics', 'value': summary_stats}
+
+It fails with the following error:
+Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 97, in execute
+    raise InvalidOutputValueMismatch(
+pandasai.exceptions.InvalidOutputValueMismatch: Value type <class 'pandas.core.frame.DataFrame'> must match with type summary_statistics
+
+
+Fix the python code above and return the new python code:
+2025-09-19 00:16:19 [INFO] Executing Step 1: CodeGenerator
+2025-09-19 00:16:24 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-19 00:16:24 [INFO] Prompt used:
+            None
+            
+2025-09-19 00:16:24 [INFO] Code generated:
+            ```
+            df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+result = {'type': 'summary_statistics', 'value': summary_stats.to_dict()}  # Convert DataFrame to dict
+            ```
+            
+2025-09-19 00:16:24 [INFO] Executing Step 2: CodeCleaning
+2025-09-19 00:16:24 [INFO] Saving charts to /Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png
+2025-09-19 00:16:24 [INFO] 
+Code running:
+```
+df = dfs[0]
+summary_stats = df.describe()
+plt.figure(figsize=(10, 6))
+if 'column_name' in df.columns:
+    df['column_name'].hist(bins=30, edgecolor='black')
+    plt.title('Histogram of column_name')
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.grid(False)
+    plt.savefig('/Users/josh/Desktop/coding/pandas-ai-2.3.0/exports/charts/temp_chart.png')
+    plt.close()
+else:
+    print("Error: 'column_name' does not exist in the DataFrame.")
+result = {'type': 'summary_statistics', 'value': summary_stats.to_dict()}
+        ```
+2025-09-19 00:16:24 [ERROR] Failed with error: Traceback (most recent call last):
+  File "/Users/josh/Desktop/coding/pandas-ai-2.3.0/pandasai/pandasai/pipelines/chat/code_execution.py", line 97, in execute
+    raise InvalidOutputValueMismatch(
+pandasai.exceptions.InvalidOutputValueMismatch: Value type <class 'dict'> must match with type summary_statistics
+
+2025-09-19 00:16:24 [ERROR] Pipeline failed on step 6: Value type <class 'dict'> must match with type summary_statistics
