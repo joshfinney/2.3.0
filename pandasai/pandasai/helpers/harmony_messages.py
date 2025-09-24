@@ -185,7 +185,10 @@ class HarmonyMessagesBuilder:
         previous_code: str = "",
         viz_library: str = "",
         reasoning_level: str = "high",
-        use_templates: bool = True
+        use_templates: bool = True,
+        few_shot_context: str = "",
+        column_context: str = "",
+        harmony_settings=None
     ) -> HarmonyMessages:
         """Build messages for code generation pipeline stage"""
 
@@ -199,18 +202,25 @@ class HarmonyMessagesBuilder:
                         skills_info=skills_info,
                         previous_code=previous_code,
                         viz_library=viz_library,
-                        reasoning_level=reasoning_level
+                        reasoning_level=reasoning_level,
+                        few_shot_context=few_shot_context,
+                        column_context=column_context
                     )
                 except Exception:
                     # Fall back to hardcoded approach if template fails
                     pass
 
-        # Fallback: Original hardcoded approach
+        # Fallback: Use harmony settings if available
+        from .harmony_config import HarmonyFormatSettings
+
+        # Get settings (use provided or create default)
+        settings = harmony_settings if harmony_settings else HarmonyFormatSettings()
+
         messages = HarmonyMessages(reasoning_level)
 
-        # Core identity
+        # Core identity (customizable)
         messages.add_core_identity(
-            "You are an expert Python data analyst. Generate clean, executable code for data analysis tasks.",
+            settings.get_core_identity_message(),
             reasoning_level
         )
 
@@ -220,16 +230,18 @@ class HarmonyMessagesBuilder:
             task_context += f"\n\n# AVAILABLE SKILLS:\n{skills_info}"
         if previous_code:
             task_context += f"\n\n# PREVIOUS CODE CONTEXT:\n```python\n{previous_code}\n```"
+        if column_context:
+            task_context += f"\n\n{column_context}"
+        if few_shot_context:
+            task_context += f"\n\n{few_shot_context}"
 
         messages.add_task_context(task_context, reasoning_level)
 
-        # Safety constraints
-        messages.add_safety_guard(
-            "SECURITY: Never import os, subprocess, or execute system commands. Only use provided dataframes and approved libraries."
-        )
+        # Safety constraints (customizable)
+        messages.add_safety_guard(settings.get_safety_constraints())
 
-        # Output format
-        output_spec = "Return executable Python code only. Declare 'result' variable as dict with 'type' and 'value' keys."
+        # Output format (customizable)
+        output_spec = settings.get_output_format_requirements()
         if viz_library:
             output_spec += f" For visualizations, use {viz_library} and save as PNG."
 

@@ -29,6 +29,7 @@ from .code_generator import CodeGenerator
 from .prompt_generation import PromptGeneration
 from .result_parsing import ResultParsing
 from .result_validation import ResultValidation
+from .market_commentary import MarketCommentary
 
 
 class GenerateChatPipeline:
@@ -90,6 +91,7 @@ class GenerateChatPipeline:
                 ResultParsing(
                     before_execution=on_result,
                 ),
+                MarketCommentary(),
             ],
         )
 

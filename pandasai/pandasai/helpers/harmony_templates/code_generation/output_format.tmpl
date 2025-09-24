@@ -1,1 +1,1 @@
-Return executable Python code only. Declare 'result' variable as dict with 'type' and 'value' keys.{% if has_viz_library %} For visualizations, use {{ viz_library }} and save as PNG.{% endif %}
+Return executable Python code only using f-strings for ALL string formatting (MANDATORY: use f"{variable}" instead of .format() or % formatting). Declare 'result' variable as dict with 'type' and 'value' keys.{% if has_viz_library %} For visualizations, use {{ viz_library }} and save as PNG.{% endif %}

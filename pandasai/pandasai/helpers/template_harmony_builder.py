@@ -118,6 +118,16 @@ class TemplateHarmonyBuilder:
                     "condition": "has_previous_code"
                 },
                 {
+                    "type": "task_context",
+                    "template": "code_generation/column_context.tmpl",
+                    "condition": "has_column_context"
+                },
+                {
+                    "type": "task_context",
+                    "template": "code_generation/few_shot_context.tmpl",
+                    "condition": "has_few_shot_context"
+                },
+                {
                     "type": "safety_guard",
                     "template": "code_generation/safety_guard.tmpl"
                 },
@@ -134,9 +144,13 @@ class TemplateHarmonyBuilder:
             "skills_info": kwargs.get("skills_info", ""),
             "previous_code": kwargs.get("previous_code", ""),
             "viz_library": kwargs.get("viz_library", ""),
+            "few_shot_context": kwargs.get("few_shot_context", ""),
+            "column_context": kwargs.get("column_context", ""),
             "has_skills": bool(kwargs.get("skills_info", "").strip()),
             "has_previous_code": bool(kwargs.get("previous_code", "").strip()),
-            "has_viz_library": bool(kwargs.get("viz_library", "").strip())
+            "has_viz_library": bool(kwargs.get("viz_library", "").strip()),
+            "has_few_shot_context": bool(kwargs.get("few_shot_context", "").strip()),
+            "has_column_context": bool(kwargs.get("column_context", "").strip())
         }
 
         return self.build_from_config(config, variables)
