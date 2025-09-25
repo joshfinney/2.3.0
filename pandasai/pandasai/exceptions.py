@@ -42,6 +42,36 @@ class NoCodeFoundError(Exception):
         Exception (Exception): NoCodeFoundError
     """
 
+    def __init__(self, message, response_preview=None, debug_info=None):
+        """
+        Initialize NoCodeFoundError with enhanced debugging information.
+
+        Args:
+            message (str): Error message
+            response_preview (str, optional): Preview of the LLM response
+            debug_info (dict, optional): Additional debugging context
+        """
+        super().__init__(message)
+        self.response_preview = response_preview
+        self.debug_info = debug_info or {}
+
+    def get_debug_summary(self):
+        """
+        Get a comprehensive debug summary for troubleshooting.
+        """
+        summary = {
+            'error_message': str(self),
+            'response_preview': self.response_preview,
+            'debug_context': self.debug_info,
+            'troubleshooting_tips': [
+                'Check if your LLM model is properly configured',
+                'Try rephrasing your query to be more specific',
+                'Verify that your data is loaded correctly',
+                'Enable debug logging for more detailed information'
+            ]
+        }
+        return summary
+
 
 class NoResultFoundError(Exception):
     """
