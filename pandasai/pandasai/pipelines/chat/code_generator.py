@@ -12,7 +12,10 @@ class CodeGenerator(BaseLogicUnit):
     LLM Code Generation Stage
     """
 
-    pass
+    def __init__(self, on_failure=None, on_retry=None, **kwargs):
+        super().__init__(**kwargs)
+        self.on_failure = on_failure
+        self.on_retry = on_retry
 
     def execute(self, input: Any, **kwargs) -> Any:
         """
@@ -30,9 +33,15 @@ class CodeGenerator(BaseLogicUnit):
         pipeline_context: PipelineContext = kwargs.get("context")
         logger: Logger = kwargs.get("logger")
 
-        code = pipeline_context.config.llm.generate_code(input, pipeline_context)
-
-        pipeline_context.add("last_code_generated", code)
+        try:
+            code = pipeline_context.config.llm.generate_code(input, pipeline_context)
+            pipeline_context.add("last_code_generated", code)
+        except Exception as e:
+            if self.on_failure:
+                self.on_failure(None, e)
+            if self.on_retry:
+                return self.on_retry(None, e)
+            raise
         logger.log(
             f"""Prompt used:
             {pipeline_context.config.llm.last_prompt}
