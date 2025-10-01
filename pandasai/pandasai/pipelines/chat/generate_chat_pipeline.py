@@ -30,6 +30,7 @@ from .prompt_generation import PromptGeneration
 from .result_parsing import ResultParsing
 from .result_validation import ResultValidation
 from .market_commentary import MarketCommentary
+from .query_transformation import QueryTransformationUnit
 
 
 class GenerateChatPipeline:
@@ -58,6 +59,7 @@ class GenerateChatPipeline:
             logger=logger,
             query_exec_tracker=self.query_exec_tracker,
             steps=[
+                QueryTransformationUnit(),
                 ValidatePipelineInput(),
                 CacheLookup(),
                 PromptGeneration(

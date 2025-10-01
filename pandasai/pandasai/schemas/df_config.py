@@ -49,6 +49,10 @@ class Config(BaseModel):
         "default": "medium"
     })
 
+    # Query transformation configuration
+    enable_query_transformation: bool = True
+    query_transformation_mode: str = "default"  # Options: "default", "conservative", "aggressive"
+
     class Config:
         arbitrary_types_allowed = True
 
