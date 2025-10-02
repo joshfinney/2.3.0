@@ -342,6 +342,21 @@ class CodeExecution(BaseLogicUnit):
 
         Returns (str): A python code
         """
+        if context is not None:
+            attempts = context.get("_error_correction_attempts", [])
+            if not isinstance(attempts, list):
+                attempts = []
+            else:
+                attempts = attempts.copy()
+            attempts.append(
+                {
+                    "source": self.__class__.__name__,
+                    "exception": e.__class__.__name__,
+                    "message": str(e),
+                }
+            )
+            context.add("_error_correction_attempts", attempts)
+
         if self.on_retry:
             return self.on_retry(code, e)
         else:
