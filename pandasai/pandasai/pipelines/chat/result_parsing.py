@@ -41,6 +41,9 @@ class ResultParsing(BaseLogicUnit):
 
         result = input
 
+        # Instrumentation hook: mark when result parsing executes.
+        pipeline_context.add("_result_parsing_executed", True)
+
         self._add_result_to_memory(result=result, context=pipeline_context)
 
         parser = self.response_parser(pipeline_context, logger=kwargs.get("logger"))

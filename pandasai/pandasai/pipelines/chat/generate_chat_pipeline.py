@@ -159,7 +159,13 @@ class GenerateChatPipeline:
 
     def on_code_retry(self, code: str, exception: Exception):
         correction_input = ErrorCorrectionPipelineInput(code, exception)
-        return self.code_exec_error_pipeline.run(correction_input)
+        self.context.add("_last_error_correction_exception", exception.__class__.__name__)
+        output = self.code_exec_error_pipeline.run(correction_input)
+        self.context.add(
+            "_last_error_correction_output_type",
+            output.__class__.__name__,
+        )
+        return output
 
     def no_code(self, context: PipelineContext):
         return context.get("last_code_generated") is None
@@ -185,6 +191,7 @@ class GenerateChatPipeline:
 
         # Reset intermediate values
         self.context.reset_intermediate_values()
+        self.context.add("_result_parsing_executed", False)
 
         # Start New Tracking for Query
         self.query_exec_tracker.start_new_track(input)
@@ -242,6 +249,7 @@ class GenerateChatPipeline:
 
         # Reset intermediate values
         self.context.reset_intermediate_values()
+        self.context.add("_result_parsing_executed", False)
 
         # Start New Tracking for Query
         self.query_exec_tracker.start_new_track(input)
@@ -299,6 +307,7 @@ class GenerateChatPipeline:
 
         # Reset intermediate values
         self.context.reset_intermediate_values()
+        self.context.add("_result_parsing_executed", False)
 
         # Start New Tracking for Query
         self.query_exec_tracker.start_new_track(input)
