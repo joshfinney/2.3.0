@@ -71,6 +71,12 @@ class QueryTransformationUnit(BaseLogicUnit):
         # Extract query from input
         original_query = getattr(input, 'query', str(input))
 
+        # Ensure Harmony-aware LLMs receive the current turn as the active user query
+        if context:
+            context.add("current_user_query", original_query)
+            prompt_format = "harmony" if context.config.use_harmony_format else "legacy"
+            context.add("query_transformation_prompt_format", prompt_format)
+
         # Build context metadata for transformation
         context_metadata = self._build_context_metadata(context)
 
@@ -78,7 +84,8 @@ class QueryTransformationUnit(BaseLogicUnit):
         try:
             transformation_result = transformer.transform(
                 original_query,
-                context_metadata
+                context_metadata,
+                pipeline_context=context,
             )
 
             # Log transformation details
@@ -124,23 +131,23 @@ class QueryTransformationUnit(BaseLogicUnit):
         if self._transformer:
             return self._transformer
 
-        # Get transformation mode from config
+        llm = getattr(context.config, 'llm', None)
+        if llm is None:
+            raise ValueError("Query transformation requires a configured LLM instance")
         mode = getattr(context.config, 'query_transformation_mode', 'default')
+        cache_key = (mode, id(llm))
 
-        # Use cached transformer if available
-        if mode in self._transformer_cache:
-            return self._transformer_cache[mode]
+        if cache_key in self._transformer_cache:
+            return self._transformer_cache[cache_key]
 
-        # Create transformer based on mode
         if mode == 'conservative':
-            transformer = QueryTransformerFactory.create_conservative()
+            transformer = QueryTransformerFactory.create_conservative(llm)
         elif mode == 'aggressive':
-            transformer = QueryTransformerFactory.create_aggressive()
-        else:  # 'default'
-            transformer = QueryTransformerFactory.create_default()
+            transformer = QueryTransformerFactory.create_aggressive(llm)
+        else:
+            transformer = QueryTransformerFactory.create_default(llm)
 
-        # Cache for reuse
-        self._transformer_cache[mode] = transformer
+        self._transformer_cache[cache_key] = transformer
         return transformer
 
     def _should_transform(self, context: PipelineContext) -> bool:
@@ -188,14 +195,14 @@ class QueryTransformationUnit(BaseLogicUnit):
         logger.log(f"Intent Level: {result.intent_level.value}")
         logger.log(f"Confidence: {result.confidence_score:.2f}")
 
-        if result.metadata.get("transformations_applied"):
-            logger.log(
-                f"Transformations: {', '.join(result.metadata['transformations_applied'])}"
-            )
+        reasoning = result.metadata.get("llm_reasoning")
+        if reasoning:
+            logger.log(f"LLM reasoning: {reasoning}")
 
-        if result.metadata.get("optimization_hints"):
+        tool_invocations = result.metadata.get("tool_invocations", [])
+        if tool_invocations:
             logger.log(
-                f"Optimization hints: {len(result.metadata['optimization_hints'])} detected"
+                f"Tools invoked: {len(tool_invocations)} (first: {tool_invocations[0]['name']})"
             )
 
     def _store_transformation_metadata(
@@ -209,6 +216,8 @@ class QueryTransformationUnit(BaseLogicUnit):
             "query_type": result.query_type.value,
             "intent_level": result.intent_level.value,
             "confidence_score": result.confidence_score,
-            "detected_entities": result.metadata.get("detected_entities", {}),
-            "optimization_hints": result.metadata.get("optimization_hints", [])
+            "llm_reasoning": result.metadata.get("llm_reasoning"),
+            "tool_invocations": result.metadata.get("tool_invocations", []),
+            "final_payload": result.metadata.get("final_payload"),
+            "raw_responses": result.metadata.get("raw_responses", []),
         })

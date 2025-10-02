@@ -1,25 +1,32 @@
-"""
-Query Transformation Module
+"""LLM-driven query transformation module.
 
-Implements intelligent query preprocessing that preserves user intent while optimizing
-downstream pipeline interpretation. Designed for production environments with strict
-separation of concerns between user-facing and internal transformations.
-
-Architecture:
-- Minimal surface area: integrates at pipeline entry point
-- Backward compatible: graceful degradation for legacy systems
-- Scalable: modular design for extensibility
-- Maintainable: clear separation of transformation stages
+This module replaces the legacy rule-based transformer with an LLM-orchestrated
+design that uses explicit tool calling for schema fuzzy matching. The goal is to
+preserve user intent while improving downstream execution reliability and
+maintaining backwards compatibility with existing pipeline integrations.
 """
 
-from typing import Optional, Dict, Any, Tuple
+from __future__ import annotations
+
+import json
+import math
 from dataclasses import dataclass
 from enum import Enum
-import re
+from typing import Any, Dict, List, Optional, Sequence
+
+from pandasai.llm.base import LLM
+from pandasai.prompts.query_transformation_prompt import QueryTransformationPrompt
+
+try:  # pragma: no cover - exercised in integration environments
+    from rapidfuzz import fuzz, process
+except Exception:  # pragma: no cover - fallback for constrained runtimes
+    fuzz = None
+    process = None
 
 
 class QueryType(Enum):
-    """Classification of query types for targeted transformation"""
+    """Classification of query types as consumed by downstream stages."""
+
     STATISTICAL = "statistical"
     VISUALIZATION = "visualization"
     FILTERING = "filtering"
@@ -31,27 +38,27 @@ class QueryType(Enum):
 
 
 class TransformationIntent(Enum):
-    """Intent preservation levels"""
-    PRESERVE_EXACT = "preserve_exact"  # No transformation
-    ENHANCE_CLARITY = "enhance_clarity"  # Clarify ambiguous terms
-    OPTIMIZE_STRUCTURE = "optimize_structure"  # Restructure for better understanding
-    ENRICH_CONTEXT = "enrich_context"  # Add contextual information
+    """Intent preservation levels requested from the LLM."""
+
+    PRESERVE_EXACT = "preserve_exact"
+    ENHANCE_CLARITY = "enhance_clarity"
+    OPTIMIZE_STRUCTURE = "optimize_structure"
+    ENRICH_CONTEXT = "enrich_context"
+
+
+@dataclass
+class ToolInvocation:
+    """Trace entry for each executed tool."""
+
+    name: str
+    args: Dict[str, Any]
+    result: Dict[str, Any]
 
 
 @dataclass
 class QueryTransformationResult:
-    """
-    Result of query transformation with full traceability
+    """Container returned to the pipeline after transformation."""
 
-    Attributes:
-        original_query: The unmodified user input
-        transformed_query: The optimized query for pipeline processing
-        query_type: Classified query type
-        intent_level: Applied transformation intent
-        metadata: Internal metadata for pipeline optimization (not user-facing)
-        confidence_score: Transformation confidence (0.0-1.0)
-        user_facing_hints: Optional hints that can be displayed to user
-    """
     original_query: str
     transformed_query: str
     query_type: QueryType
@@ -59,432 +66,347 @@ class QueryTransformationResult:
     metadata: Dict[str, Any]
     confidence_score: float
     user_facing_hints: Optional[str] = None
+    confidence_threshold: float = 0.7
 
     def should_apply_transformation(self) -> bool:
-        """Determine if transformation should be applied based on confidence"""
-        return self.confidence_score >= 0.7 and self.transformed_query != self.original_query
+        """Return True when the optimized query should replace the original."""
+
+        if not self.transformed_query:
+            return False
+        if self.transformed_query == self.original_query:
+            return False
+        return self.confidence_score >= self.confidence_threshold
 
     def get_query_for_pipeline(self) -> str:
-        """Get the appropriate query version for pipeline processing"""
-        return self.transformed_query if self.should_apply_transformation() else self.original_query
+        """Return the query string to forward to downstream pipeline stages."""
+
+        return (
+            self.transformed_query
+            if self.should_apply_transformation()
+            else self.original_query
+        )
+
+
+class QueryTransformerError(RuntimeError):
+    """Raised when the transformer cannot obtain a valid LLM response."""
 
 
 class QueryTransformer:
-    """
-    Production-grade query transformer with strategic intent preservation
-
-    Design Principles:
-    1. Minimal intervention: Only transform when confidence is high
-    2. Intent preservation: Never alter the core meaning
-    3. Context enrichment: Add implicit information for better results
-    4. Scalable patterns: Extensible transformation rules
-    """
-
-    # Statistical operation synonyms for normalization
-    STATISTICAL_PATTERNS = {
-        r'\b(avg|average)\b': 'mean',
-        r'\b(total|sum up)\b': 'sum',
-        r'\b(count|number of|how many)\b': 'count',
-        r'\b(middle value)\b': 'median',
-        r'\b(most common|most frequent)\b': 'mode',
-        r'\b(spread|variability)\b': 'standard deviation',
-    }
-
-    # Visualization keywords for type detection
-    VISUALIZATION_KEYWORDS = [
-        'plot', 'chart', 'graph', 'visualize', 'show', 'display',
-        'histogram', 'bar chart', 'line graph', 'scatter', 'pie chart'
-    ]
-
-    # Temporal patterns
-    TEMPORAL_KEYWORDS = [
-        'trend', 'over time', 'time series', 'daily', 'monthly', 'yearly',
-        'before', 'after', 'during', 'between'
-    ]
-
-    # Comparative patterns
-    COMPARATIVE_KEYWORDS = [
-        'compare', 'difference', 'versus', 'vs', 'against', 'between',
-        'higher than', 'lower than', 'greater than', 'less than'
-    ]
+    """LLM-orchestrated query transformer with tool execution support."""
 
     def __init__(
         self,
-        enable_normalization: bool = True,
-        enable_context_enrichment: bool = True,
-        enable_ambiguity_resolution: bool = True,
-        confidence_threshold: float = 0.7
-    ):
-        """
-        Initialize query transformer with configuration
+        llm: LLM,
+        *,
+        confidence_threshold: float = 0.7,
+        max_tool_iterations: int = 2,
+        max_candidates: int = 50,
+    ) -> None:
+        if llm is None:
+            raise ValueError("QueryTransformer requires an LLM instance")
 
-        Args:
-            enable_normalization: Normalize statistical terminology
-            enable_context_enrichment: Add implicit contextual information
-            enable_ambiguity_resolution: Resolve ambiguous references
-            confidence_threshold: Minimum confidence for applying transformations
-        """
-        self.enable_normalization = enable_normalization
-        self.enable_context_enrichment = enable_context_enrichment
-        self.enable_ambiguity_resolution = enable_ambiguity_resolution
-        self.confidence_threshold = confidence_threshold
+        self._llm = llm
+        self._confidence_threshold = confidence_threshold
+        self._max_tool_iterations = max(0, max_tool_iterations)
+        self._max_candidates = max(1, max_candidates)
 
+    # ---------------------------------------------------------------------
+    # Public API
+    # ---------------------------------------------------------------------
     def transform(
         self,
         query: str,
-        context_metadata: Optional[Dict[str, Any]] = None
+        context_metadata: Optional[Dict[str, Any]] = None,
+        pipeline_context: Any = None,
     ) -> QueryTransformationResult:
-        """
-        Transform query while preserving intent
+        """Transform the query through an LLM + tool orchestration loop."""
 
-        Args:
-            query: User's original query
-            context_metadata: Optional metadata about available dataframes, columns, etc.
-
-        Returns:
-            QueryTransformationResult with transformation details
-        """
-        if not query or not query.strip():
+        if not query or not isinstance(query, str) or not query.strip():
             return QueryTransformationResult(
                 original_query=query,
                 transformed_query=query,
                 query_type=QueryType.GENERAL,
                 intent_level=TransformationIntent.PRESERVE_EXACT,
-                metadata={},
-                confidence_score=1.0
+                metadata={"llm_bypass_reason": "empty_query"},
+                confidence_score=1.0,
+                confidence_threshold=self._confidence_threshold,
             )
 
-        # Stage 1: Classify query type
-        query_type = self._classify_query(query)
+        context_metadata = context_metadata or {}
+        deduped_columns = self._prepare_column_inventory(
+            context_metadata.get("available_columns", [])
+        )
 
-        # Stage 2: Apply transformations
-        transformed_query = query
-        transformation_metadata = {
-            "transformations_applied": [],
-            "detected_entities": {},
-            "optimization_hints": []
+        tool_invocations: List[ToolInvocation] = []
+        final_payload: Optional[Dict[str, Any]] = None
+        raw_responses: List[str] = []
+
+        for iteration in range(self._max_tool_iterations + 1):
+            tool_history = [
+                {
+                    "name": invocation.name,
+                    "args": invocation.args,
+                    "result": invocation.result,
+                }
+                for invocation in tool_invocations
+            ]
+
+            prompt = QueryTransformationPrompt(
+                context=pipeline_context,
+                query=query,
+                column_inventory=deduped_columns,
+                dataframe_count=int(context_metadata.get("dataframe_count", 0)),
+                tool_invocations=tool_history,
+                config={
+                    "confidence_threshold": self._confidence_threshold,
+                    "max_tool_iterations": self._max_tool_iterations,
+                    "column_limit": self._max_candidates,
+                },
+            )
+
+            response = self._llm.call(prompt, pipeline_context)
+            raw_responses.append(str(response))
+            parsed = self._parse_llm_payload(response)
+
+            action = parsed.get("action", "final")
+            if action == "call_tool":
+                if iteration >= self._max_tool_iterations:
+                    break
+                tool_invocation = self._execute_tool(parsed)
+                tool_invocations.append(tool_invocation)
+                continue
+
+            if action == "final":
+                final_payload = parsed
+                break
+
+            raise QueryTransformerError(
+                f"Unsupported action '{action}' returned by query transformer LLM"
+            )
+
+        if final_payload is None:
+            final_payload = {
+                "transformed_query": query,
+                "query_type": "general",
+                "intent": "preserve_exact",
+                "confidence": 0.0,
+                "reasoning": "LLM did not provide a final response",
+            }
+
+        result = self._build_result(
+            original_query=query,
+            payload=final_payload,
+            tool_invocations=tool_invocations,
+            raw_responses=raw_responses,
+        )
+
+        return result
+
+    # ------------------------------------------------------------------
+    # Prompt orchestration utilities
+    # ------------------------------------------------------------------
+    def _prepare_column_inventory(self, columns: Sequence[Any]) -> List[str]:
+        sanitized = []
+        seen = set()
+        for column in columns:
+            col_str = str(column).strip()
+            if not col_str or col_str.lower() in seen:
+                continue
+            sanitized.append(col_str)
+            seen.add(col_str.lower())
+            if len(sanitized) >= self._max_candidates:
+                break
+        return sanitized
+
+    def _parse_llm_payload(self, response: Any) -> Dict[str, Any]:
+        if not isinstance(response, str):
+            response = str(response)
+
+        response = response.strip()
+        if "```" in response:
+            segments = [segment.strip() for segment in response.split("```") if segment.strip()]
+            if segments:
+                response = segments[0]
+        if response.lower().startswith("json"):
+            response = response[4:].lstrip()
+
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError as exc:  # pragma: no cover - defensive guard
+            raise QueryTransformerError(
+                f"Query transformer LLM produced invalid JSON: {exc}: {response}"
+            ) from exc
+
+    # ------------------------------------------------------------------
+    # Tool execution
+    # ------------------------------------------------------------------
+    def _execute_tool(self, payload: Dict[str, Any]) -> ToolInvocation:
+        tool_name = payload.get("tool_name")
+        if not tool_name:
+            raise QueryTransformerError("Tool request missing 'tool_name'")
+
+        args = payload.get("tool_args", {})
+        if tool_name == "rapidfuzz_similarity":
+            result = self._rapidfuzz_similarity(**args)
+        else:  # pragma: no cover - safeguard for future extensions
+            raise QueryTransformerError(f"Unsupported tool '{tool_name}' requested")
+
+        return ToolInvocation(name=tool_name, args=args, result=result)
+
+    def _rapidfuzz_similarity(
+        self,
+        query: str,
+        choices: Sequence[str],
+        limit: int = 5,
+        scorer: str = "token_sort_ratio",
+    ) -> Dict[str, Any]:
+        limit = max(1, min(int(limit), self._max_candidates))
+        choices_list = [str(choice) for choice in choices][: self._max_candidates]
+        engine = "rapidfuzz"
+
+        if process is None or fuzz is None:  # pragma: no cover - fallback path
+            engine = "difflib"
+            import difflib
+
+            matches = []
+            for candidate in choices_list:
+                score = difflib.SequenceMatcher(None, query, candidate).ratio() * 100
+                matches.append({"choice": candidate, "score": round(score, 2)})
+            matches.sort(key=lambda item: item["score"], reverse=True)
+            matches = matches[:limit]
+        else:
+            scorer_fn = getattr(fuzz, scorer, fuzz.token_sort_ratio)
+            results = process.extract(
+                query,
+                choices_list,
+                scorer=scorer_fn,
+                limit=limit,
+            )
+            matches = [
+                {"choice": candidate, "score": round(float(score), 2)}
+                for candidate, score, _ in results
+            ]
+
+        return {"engine": engine, "matches": matches}
+
+    # ------------------------------------------------------------------
+    # Result construction
+    # ------------------------------------------------------------------
+    def _build_result(
+        self,
+        *,
+        original_query: str,
+        payload: Dict[str, Any],
+        tool_invocations: List[ToolInvocation],
+        raw_responses: List[str],
+    ) -> QueryTransformationResult:
+        transformed_query = payload.get("transformed_query", original_query) or original_query
+        confidence = self._sanitize_confidence(payload.get("confidence"))
+        query_type = self._parse_query_type(payload.get("query_type"))
+        intent = self._parse_intent(payload.get("intent"))
+
+        metadata = {
+            "llm_reasoning": payload.get("reasoning"),
+            "llm_metadata": payload.get("metadata", {}),
+            "tool_invocations": [
+                {
+                    "name": invocation.name,
+                    "args": self._redact_tool_args(invocation.args),
+                    "result": invocation.result,
+                }
+                for invocation in tool_invocations
+            ],
+            "raw_responses": raw_responses,
+            "iterations": len(raw_responses),
+            "final_payload": self._redact_payload(payload),
         }
 
-        if self.enable_normalization:
-            transformed_query, norm_metadata = self._normalize_terminology(
-                transformed_query, query_type
-            )
-            transformation_metadata["transformations_applied"].extend(
-                norm_metadata.get("applied", [])
-            )
-
-        if self.enable_context_enrichment and context_metadata:
-            transformed_query, enrich_metadata = self._enrich_with_context(
-                transformed_query, query_type, context_metadata
-            )
-            transformation_metadata["detected_entities"].update(
-                enrich_metadata.get("entities", {})
-            )
-
-        if self.enable_ambiguity_resolution:
-            transformed_query, resolution_metadata = self._resolve_ambiguities(
-                transformed_query, query_type, context_metadata
-            )
-            transformation_metadata["optimization_hints"].extend(
-                resolution_metadata.get("hints", [])
-            )
-
-        # Stage 3: Calculate confidence and determine intent level
-        confidence = self._calculate_confidence(
-            query, transformed_query, query_type, transformation_metadata
-        )
-
-        intent_level = self._determine_intent_level(
-            query, transformed_query, confidence
-        )
-
-        # Stage 4: Generate user-facing hints (if significant transformation occurred)
-        user_facing_hints = None
-        if confidence >= 0.8 and query != transformed_query:
-            user_facing_hints = self._generate_user_hints(
-                query, transformed_query, query_type
-            )
+        hints = None
+        metadata_hints = payload.get("metadata", {}).get("user_hints")
+        if isinstance(metadata_hints, str):
+            hints = metadata_hints
 
         return QueryTransformationResult(
-            original_query=query,
+            original_query=original_query,
             transformed_query=transformed_query,
             query_type=query_type,
-            intent_level=intent_level,
-            metadata=transformation_metadata,
+            intent_level=intent,
+            metadata=metadata,
             confidence_score=confidence,
-            user_facing_hints=user_facing_hints
+            user_facing_hints=hints,
+            confidence_threshold=self._confidence_threshold,
         )
 
-    def _classify_query(self, query: str) -> QueryType:
-        """Classify query into type for targeted transformation"""
-        query_lower = query.lower()
+    def _sanitize_confidence(self, raw_value: Any) -> float:
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError):
+            value = 0.0
+        if math.isnan(value) or math.isinf(value):
+            value = 0.0
+        return max(0.0, min(1.0, value))
 
-        # Check for visualization intent
-        if any(kw in query_lower for kw in self.VISUALIZATION_KEYWORDS):
-            return QueryType.VISUALIZATION
-
-        # Check for temporal analysis
-        if any(kw in query_lower for kw in self.TEMPORAL_KEYWORDS):
-            return QueryType.TEMPORAL
-
-        # Check for comparative analysis
-        if any(kw in query_lower for kw in self.COMPARATIVE_KEYWORDS):
-            return QueryType.COMPARATIVE
-
-        # Check for statistical operations
-        stat_pattern = re.compile(
-            r'\b(mean|average|sum|count|median|mode|std|variance|min|max)\b',
-            re.IGNORECASE
-        )
-        if stat_pattern.search(query_lower):
-            return QueryType.STATISTICAL
-
-        # Check for aggregation
-        agg_pattern = re.compile(
-            r'\b(group by|aggregate|summarize|total by)\b',
-            re.IGNORECASE
-        )
-        if agg_pattern.search(query_lower):
-            return QueryType.AGGREGATION
-
-        # Check for filtering
-        filter_pattern = re.compile(
-            r'\b(where|filter|only|exclude|select)\b',
-            re.IGNORECASE
-        )
-        if filter_pattern.search(query_lower):
-            return QueryType.FILTERING
-
-        # Check for descriptive
-        desc_pattern = re.compile(
-            r'\b(describe|summary|overview|info|what is|show me)\b',
-            re.IGNORECASE
-        )
-        if desc_pattern.search(query_lower):
-            return QueryType.DESCRIPTIVE
-
+    def _parse_query_type(self, raw_value: Any) -> QueryType:
+        if isinstance(raw_value, QueryType):
+            return raw_value
+        if isinstance(raw_value, str):
+            normalized = raw_value.strip().lower()
+            for query_type in QueryType:
+                if query_type.value == normalized:
+                    return query_type
         return QueryType.GENERAL
 
-    def _normalize_terminology(
-        self, query: str, query_type: QueryType
-    ) -> Tuple[str, Dict[str, Any]]:
-        """Normalize statistical and analytical terminology"""
-        normalized = query
-        applied_normalizations = []
+    def _parse_intent(self, raw_value: Any) -> TransformationIntent:
+        if isinstance(raw_value, TransformationIntent):
+            return raw_value
+        if isinstance(raw_value, str):
+            normalized = raw_value.strip().lower()
+            for intent in TransformationIntent:
+                if intent.value == normalized:
+                    return intent
+        return TransformationIntent.PRESERVE_EXACT
 
-        if query_type in [QueryType.STATISTICAL, QueryType.AGGREGATION]:
-            for pattern, replacement in self.STATISTICAL_PATTERNS.items():
-                if re.search(pattern, normalized, re.IGNORECASE):
-                    original = normalized
-                    normalized = re.sub(
-                        pattern, replacement, normalized, flags=re.IGNORECASE
-                    )
-                    if original != normalized:
-                        applied_normalizations.append(
-                            f"normalized_{pattern.strip('\\b()')}_to_{replacement}"
-                        )
+    def _redact_tool_args(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        redacted = {}
+        for key, value in args.items():
+            if key in {"choices", "query"}:
+                redacted[key] = "<redacted>"
+            else:
+                redacted[key] = value
+        return redacted
 
-        metadata = {
-            "applied": applied_normalizations,
-            "original_had_synonyms": len(applied_normalizations) > 0
+    def _redact_payload(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        allowed_keys = {
+            "transformed_query",
+            "query_type",
+            "intent",
+            "confidence",
+            "reasoning",
+            "metadata",
         }
-
-        return normalized, metadata
-
-    def _enrich_with_context(
-        self,
-        query: str,
-        query_type: QueryType,
-        context_metadata: Dict[str, Any]
-    ) -> Tuple[str, Dict[str, Any]]:
-        """Enrich query with implicit contextual information"""
-        enriched = query
-        detected_entities = {}
-
-        # Extract available columns from context if provided
-        available_columns = context_metadata.get("available_columns", [])
-        detected_columns = []
-
-        # Detect column references in query
-        for column in available_columns:
-            # Use case-insensitive matching for column detection
-            if re.search(rf'\b{re.escape(column)}\b', query, re.IGNORECASE):
-                detected_columns.append(column)
-
-        detected_entities["columns"] = detected_columns
-        detected_entities["dataframe_count"] = context_metadata.get("dataframe_count", 0)
-
-        # Add implicit aggregation scope if missing
-        if query_type == QueryType.STATISTICAL and "group by" not in query.lower():
-            # Check if query implies grouping but doesn't specify
-            if any(word in query.lower() for word in ["by", "per", "for each"]):
-                # Add optimization hint but don't modify query (preserve intent)
-                detected_entities["implied_grouping"] = True
-
-        metadata = {
-            "entities": detected_entities,
-            "context_used": bool(available_columns)
-        }
-
-        return enriched, metadata
-
-    def _resolve_ambiguities(
-        self,
-        query: str,
-        query_type: QueryType,
-        context_metadata: Optional[Dict[str, Any]]
-    ) -> Tuple[str, Dict[str, Any]]:
-        """Resolve ambiguous references in query"""
-        resolved = query
-        hints = []
-
-        # Detect ambiguous pronouns (it, this, that, these, those)
-        ambiguous_pronouns = re.findall(
-            r'\b(it|this|that|these|those)\b',
-            query,
-            re.IGNORECASE
-        )
-
-        if ambiguous_pronouns and context_metadata:
-            # Add hint for downstream processing
-            hints.append({
-                "type": "ambiguous_reference",
-                "pronouns": ambiguous_pronouns,
-                "suggestion": "Consider using conversation context for resolution"
-            })
-
-        # Detect missing explicit dataframe reference in multi-df contexts
-        if context_metadata and context_metadata.get("dataframe_count", 0) > 1:
-            # Check if query doesn't explicitly mention dataframe index
-            if not re.search(r'dfs?\[\d+\]|dataframe \d+', query, re.IGNORECASE):
-                hints.append({
-                    "type": "implicit_dataframe",
-                    "suggestion": "Query may require dataframe context resolution"
-                })
-
-        # Detect incomplete temporal specifications
-        if query_type == QueryType.TEMPORAL:
-            if not re.search(
-                r'\d{4}|january|february|march|april|may|june|july|august|'
-                r'september|october|november|december|last \w+|this \w+',
-                query,
-                re.IGNORECASE
-            ):
-                hints.append({
-                    "type": "vague_temporal",
-                    "suggestion": "Temporal query lacks specific time reference"
-                })
-
-        metadata = {
-            "hints": hints,
-            "ambiguities_detected": len(hints)
-        }
-
-        return resolved, metadata
-
-    def _calculate_confidence(
-        self,
-        original: str,
-        transformed: str,
-        query_type: QueryType,
-        transformation_metadata: Dict[str, Any]
-    ) -> float:
-        """Calculate confidence score for transformation quality"""
-        base_confidence = 1.0
-
-        # Reduce confidence if too many transformations applied
-        num_transformations = len(
-            transformation_metadata.get("transformations_applied", [])
-        )
-        if num_transformations > 3:
-            base_confidence -= 0.1 * (num_transformations - 3)
-
-        # Reduce confidence if ambiguities detected
-        num_ambiguities = transformation_metadata.get("optimization_hints", [])
-        ambiguity_count = sum(
-            1 for hint in num_ambiguities
-            if isinstance(hint, dict) and hint.get("type") == "ambiguous_reference"
-        )
-        base_confidence -= 0.05 * ambiguity_count
-
-        # Increase confidence for well-classified queries
-        if query_type != QueryType.GENERAL:
-            base_confidence += 0.05
-
-        # Ensure confidence stays within bounds
-        return max(0.0, min(1.0, base_confidence))
-
-    def _determine_intent_level(
-        self, original: str, transformed: str, confidence: float
-    ) -> TransformationIntent:
-        """Determine the intent level of applied transformations"""
-        if original == transformed:
-            return TransformationIntent.PRESERVE_EXACT
-
-        # Calculate edit distance ratio
-        edit_distance = len(set(original.lower().split()) ^ set(transformed.lower().split()))
-        total_words = len(set(original.lower().split()) | set(transformed.lower().split()))
-        change_ratio = edit_distance / total_words if total_words > 0 else 0
-
-        if change_ratio < 0.1 and confidence > 0.8:
-            return TransformationIntent.ENHANCE_CLARITY
-        elif change_ratio < 0.3:
-            return TransformationIntent.OPTIMIZE_STRUCTURE
-        else:
-            return TransformationIntent.ENRICH_CONTEXT
-
-    def _generate_user_hints(
-        self, original: str, transformed: str, query_type: QueryType
-    ) -> Optional[str]:
-        """Generate user-facing hints about query interpretation"""
-        # Only generate hints for significant transformations
-        if original.lower() == transformed.lower():
-            return None
-
-        # For now, return None as user-facing hints are optional
-        # This can be expanded based on UX requirements
-        return None
+        return {key: payload.get(key) for key in allowed_keys if key in payload}
 
 
 class QueryTransformerFactory:
-    """Factory for creating configured QueryTransformer instances"""
+    """Factory helpers used by the pipeline to configure the transformer."""
 
     @staticmethod
-    def create_default() -> QueryTransformer:
-        """Create transformer with default production settings"""
-        return QueryTransformer(
-            enable_normalization=True,
-            enable_context_enrichment=True,
-            enable_ambiguity_resolution=True,
-            confidence_threshold=0.7
-        )
+    def create_default(llm: LLM) -> QueryTransformer:
+        return QueryTransformer(llm, confidence_threshold=0.7, max_tool_iterations=2)
 
     @staticmethod
-    def create_conservative() -> QueryTransformer:
-        """Create transformer with conservative settings (minimal intervention)"""
-        return QueryTransformer(
-            enable_normalization=False,
-            enable_context_enrichment=False,
-            enable_ambiguity_resolution=True,
-            confidence_threshold=0.9
-        )
+    def create_conservative(llm: LLM) -> QueryTransformer:
+        return QueryTransformer(llm, confidence_threshold=0.9, max_tool_iterations=1)
 
     @staticmethod
-    def create_aggressive() -> QueryTransformer:
-        """Create transformer with aggressive optimization"""
-        return QueryTransformer(
-            enable_normalization=True,
-            enable_context_enrichment=True,
-            enable_ambiguity_resolution=True,
-            confidence_threshold=0.5
-        )
+    def create_aggressive(llm: LLM) -> QueryTransformer:
+        return QueryTransformer(llm, confidence_threshold=0.5, max_tool_iterations=3)
 
     @staticmethod
-    def create_from_config(config: Dict[str, Any]) -> QueryTransformer:
-        """Create transformer from configuration dictionary"""
+    def create_from_config(llm: LLM, config: Dict[str, Any]) -> QueryTransformer:
         return QueryTransformer(
-            enable_normalization=config.get("enable_normalization", True),
-            enable_context_enrichment=config.get("enable_context_enrichment", True),
-            enable_ambiguity_resolution=config.get("enable_ambiguity_resolution", True),
-            confidence_threshold=config.get("confidence_threshold", 0.7)
+            llm,
+            confidence_threshold=float(config.get("confidence_threshold", 0.7)),
+            max_tool_iterations=int(config.get("max_tool_iterations", 2)),
+            max_candidates=int(config.get("max_candidates", 50)),
         )

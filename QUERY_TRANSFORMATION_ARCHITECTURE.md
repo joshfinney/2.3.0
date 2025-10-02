@@ -1,5 +1,10 @@
 # Query Transformation System - Complete Architecture
 
+> **Update:** The production system now uses an LLM-led transformation flow with
+> RapidFuzz tool calls. The content below documents the legacy deterministic
+> implementation; see `QUERY_TRANSFORMATION_LLM_DESIGN_NOTE.md` for the current
+> architecture overview.
+
 ## Multi-Format Support & Conversation Robustness
 
 The Query Transformation System is designed to work seamlessly with **both** Harmony format and legacy Jinja2 templates, while being fully robust for multi-turn conversations with dynamic context shifts.
