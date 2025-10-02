@@ -9,6 +9,7 @@ import pandas as pd
 from pandasai import Agent
 from pandasai.schemas.df_config import Config
 from pandasai.llm import OpenAI
+from pandasai.llm.fake import FakeLLM
 
 # ============================================================================
 # Example 1: Default Configuration (Recommended for most use cases)
@@ -183,13 +184,22 @@ def example_transformation_metadata():
     """
     Access transformation metadata for debugging or monitoring.
     """
-    from pandasai.helpers.query_transformer import (
-        QueryTransformer,
-        QueryTransformerFactory
-    )
+    from pandasai.helpers.query_transformer import QueryTransformerFactory
 
-    # Create transformer
-    transformer = QueryTransformerFactory.create_default()
+    # Prepare deterministic fake LLM output
+    fake_output = """```json
+    {
+      "action": "final",
+      "transformed_query": "Calculate mean of sales",
+      "query_type": "statistical",
+      "intent": "enhance_clarity",
+      "confidence": 0.82,
+      "reasoning": "Normalized average->mean",
+      "metadata": {"user_hints": "Mapped to canonical term"}
+    }
+    ```"""
+
+    transformer = QueryTransformerFactory.create_default(FakeLLM(fake_output))
 
     # Transform query with context
     context_metadata = {
@@ -210,7 +220,10 @@ def example_transformation_metadata():
     print(f"Confidence: {result.confidence_score:.2f}")
     print(f"Should Apply: {result.should_apply_transformation()}")
     print(f"Pipeline Query: {result.get_query_for_pipeline()}")
-    print(f"Metadata: {result.metadata}")
+    print("Metadata Summary:")
+    print(f"  Reasoning: {result.metadata.get('llm_reasoning')}")
+    print(f"  Tool Calls: {result.metadata.get('tool_invocations')}")
+    print(f"  Final Payload: {result.metadata.get('final_payload')}")
 
 
 # ============================================================================
@@ -221,24 +234,34 @@ def example_custom_transformer():
     """
     Create custom transformer with specific settings.
     """
-    from pandasai.helpers.query_transformer import (
-        QueryTransformer,
-        QueryTransformerFactory
-    )
+    from pandasai.helpers.query_transformer import QueryTransformerFactory
 
-    # Create custom transformer
+    fake_output = """```json
+    {
+      "action": "final",
+      "transformed_query": "Summarize revenue performance",
+      "query_type": "descriptive",
+      "intent": "optimize_structure",
+      "confidence": 0.65,
+      "reasoning": "Clarified vague phrasing",
+      "metadata": {"notes": {"strategy": "conservative"}}
+    }
+    ```"""
+
     custom_config = {
-        "enable_normalization": True,
-        "enable_context_enrichment": False,  # Disable context enrichment
-        "enable_ambiguity_resolution": True,
-        "confidence_threshold": 0.75  # Custom threshold
+        "confidence_threshold": 0.6,
+        "max_tool_iterations": 1,
+        "max_candidates": 20
     }
 
-    transformer = QueryTransformerFactory.create_from_config(custom_config)
+    transformer = QueryTransformerFactory.create_from_config(
+        FakeLLM(fake_output),
+        custom_config
+    )
 
-    # Use in transformation
-    result = transformer.transform("Calculate average of sales")
+    result = transformer.transform("Tell me about revenue trends")
     print(f"Custom transformer result: {result.transformed_query}")
+    print(f"Applied? {result.should_apply_transformation()}")
 
 
 # ============================================================================

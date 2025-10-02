@@ -71,7 +71,8 @@ class BasePrompt:
             "generatepythoncodewithsqlprompt": "code_generation",
             "correcterrorprompt": "error_correction",
             "explainprompt": "explanation",
-            "clarificationquestionprompt": "clarification"
+            "clarificationquestionprompt": "clarification",
+            "querytransformationprompt": "query_transformation",
         }
 
         reasoning_type = reasoning_map.get(prompt_class, "default")

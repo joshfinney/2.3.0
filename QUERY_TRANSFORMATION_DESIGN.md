@@ -2,7 +2,12 @@
 
 ## Executive Summary
 
-The Query Transformation System is a production-grade preliminary preprocessing step that optimizes user queries before they enter the main pipeline. It preserves user intent while ensuring downstream components interpret queries optimally, resulting in higher-quality code generation and improved user experience.
+The query transformation stage has been upgraded from a deterministic,
+rule-based pipeline to an LLM-orchestrated system with explicit RapidFuzz tool
+calls. The LLM now plans transformations, invokes fuzzy matching when schema
+resolution is required, and returns structured metadata for observability. This
+document retains the legacy implementation notes for historical reference; see
+`QUERY_TRANSFORMATION_LLM_DESIGN_NOTE.md` for the current architecture details.
 
 **Key Characteristics:**
 - ✅ Minimal surface area (single insertion point at pipeline entry)

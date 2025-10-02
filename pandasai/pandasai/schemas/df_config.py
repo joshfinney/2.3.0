@@ -17,6 +17,7 @@ class HarmonyReasoningConfig(TypedDict, total=False):
     error_correction: str
     explanation: str
     clarification: str
+    query_transformation: str
     default: str
 
 
@@ -46,6 +47,7 @@ class Config(BaseModel):
         "error_correction": "medium",
         "explanation": "low",
         "clarification": "low",
+        "query_transformation": "medium",
         "default": "medium"
     })
 
